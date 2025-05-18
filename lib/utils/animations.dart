@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 
@@ -10,6 +12,7 @@ class ShowUpAnimation extends StatefulWidget {
   ShowUpAnimation({super.key, required this.child,  this.delay});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ShowUpAnimationState createState() => _ShowUpAnimationState();
 }
 

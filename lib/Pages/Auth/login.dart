@@ -107,6 +107,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white),
         borderRadius: BorderRadius.circular(15),
+        // ignore: deprecated_member_use
         color: Colors.black.withOpacity(0.1),
 
 

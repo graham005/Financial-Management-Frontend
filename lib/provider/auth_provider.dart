@@ -33,7 +33,7 @@ class AuthNotifier extends StateNotifier<bool> {
       throw Exception("Login failed: $e");
     }
   }
-+-
+
   Future <void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("auth_token");

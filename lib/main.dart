@@ -1,4 +1,5 @@
-import 'package:finance_management_frontend/Pages/Auth/login.dart';
+import 'package:finance_management_frontend/Pages/Admin/admin_dashboard_screen.dart';
+//import 'package:finance_management_frontend/Pages/Auth/login.dart';
 import 'package:finance_management_frontend/Pages/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: "/",
       routes: {
-        "/": (context) => LoginScreen(),
+        "/": (context) => AdminDashboardScreen(),
         "/dashboard": (context) => DashboardScreen(),
       }
     );
