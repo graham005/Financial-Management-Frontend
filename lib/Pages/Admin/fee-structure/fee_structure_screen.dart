@@ -1,6 +1,7 @@
 import 'package:finance_management_frontend/provider/fee_structure_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class FeeStructureScreen extends ConsumerWidget{
@@ -13,7 +14,7 @@ class FeeStructureScreen extends ConsumerWidget{
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Fee Structure Management"),
+        title: Text("Fee Structure Management", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -41,30 +42,31 @@ class FeeStructureScreen extends ConsumerWidget{
                   onChanged: (value) {},
                 ),
                 SizedBox(width: 16),
+                Spacer(),
                 ElevatedButton(
                   onPressed: () {},  //TODO: Add link to page to add new fee structure
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  child: Text("+ Add New Fee Structure"),
+                  child: Text("+ Add New Fee Structure", style: GoogleFonts.underdog(color: Colors.white)),
                 )
               ],
             ),
             SizedBox(height: 16),
             DataTable(
               columns: [
-                DataColumn(label: Text("Grade")),
-                DataColumn(label: Text("Term 1 Fee")),
-                DataColumn(label: Text("Term 2 Fee")),
-                DataColumn(label: Text("Term 3 Fee")),
-                DataColumn(label: Text("Total Fee")),
-                DataColumn(label: Text("Actions")),
+                DataColumn(label: Text("Grade", style: GoogleFonts.underdog())),
+                DataColumn(label: Text("Term 1 Fee", style: GoogleFonts.underdog())),
+                DataColumn(label: Text("Term 2 Fee", style: GoogleFonts.underdog())),
+                DataColumn(label: Text("Term 3 Fee", style: GoogleFonts.underdog())),
+                DataColumn(label: Text("Total Fee", style: GoogleFonts.underdog())),
+                DataColumn(label: Text("Actions", style: GoogleFonts.underdog())),
               ], 
               rows: feeStructures.map((fs) {
                 return DataRow(cells: [
-                  DataCell(Text(fs.grade)),
-                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term1Fee))),
-                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term2Fee))),
-                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term3Fee))),
-                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.totalFee))),
+                  DataCell(Text(fs.grade, style: GoogleFonts.underdog())),
+                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term1Fee), style: GoogleFonts.underdog())),
+                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term2Fee), style: GoogleFonts.underdog())),
+                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term3Fee), style: GoogleFonts.underdog())),
+                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.totalFee), style: GoogleFonts.underdog())),
                   DataCell(
                     Row(
                       children: [

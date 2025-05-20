@@ -1,6 +1,7 @@
 import 'package:finance_management_frontend/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AdminDashboardScreen extends ConsumerWidget{
   const AdminDashboardScreen({super.key});
@@ -9,7 +10,7 @@ class AdminDashboardScreen extends ConsumerWidget{
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold (
       appBar: AppBar(
-        title: Text("School Admin Dashboard"),
+        title: Text("School Admin Dashboard", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
         actions: [
           CircleAvatar(
             backgroundImage: NetworkImage("https://via.placeholder.com/30"),
@@ -19,7 +20,8 @@ class AdminDashboardScreen extends ConsumerWidget{
           SizedBox(width: 8),
           ElevatedButton(
             onPressed: () => ref.read(authProvider.notifier).logout(),
-            child: Text("Logout")),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text("Logout",style: TextStyle(color: Colors.white),)),
         ],
       ),
       body: Padding(
@@ -65,24 +67,24 @@ class AdminDashboardScreen extends ConsumerWidget{
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Row(
+            Row(            
               children: [
                 ElevatedButton(
                   onPressed: () {}, //TODO: Implement the page to redirect to
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  child: Text("Users"),
+                  child: Text("Users", style: TextStyle(color: Colors.white),),
                 ),
                 SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {}, //TODO: Implement the page to redirect to
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: Text("Students"),
+                  child: Text("Students", style: TextStyle(color: Colors.white),),
                 ),
                 SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {}, //TODO: Implement the page to redirect to
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-                  child: Text("Fee Structure"),
+                  child: Text("Fee Structure", style: TextStyle(color: Colors.white),),
                 ),
               ],
             ),
@@ -94,45 +96,48 @@ class AdminDashboardScreen extends ConsumerWidget{
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            DataTable(
-              columns: [
-                DataColumn(label: Text("Action")),
-                DataColumn(label: Text("User")),
-                DataColumn(label: Text("Time")),
-                DataColumn(label: Text("Status"))
-              ],
-              rows: [
-                DataRow(cells: [
+            Center(
+              child:
+              SizedBox(
+                width: double.infinity,
+                child: DataTable(
+                columns: [
+                  DataColumn(label: Text("Action")),
+                  DataColumn(label: Text("User")),
+                  DataColumn(label: Text("Time")),
+                  DataColumn(label: Text("Status"))
+                ],
+                rows: [
+                  DataRow(cells: [
                   DataCell(Text("New User Created")),
                   DataCell(Text("Sarah Wilson")),
                   DataCell(Text("2 minutes ago")),
                   DataCell(Container(
                     padding: EdgeInsets.all(4),
-                    color: Colors.lightGreenAccent,
-                    child: Text("Completed"),
+                    child: Text("Completed", style: TextStyle(color: Colors.green),),
                   )),
-                ]),
-                DataRow(cells: [
+                  ]),
+                  DataRow(cells: [
                   DataCell(Text("Student Onboarded")),
                   DataCell(Text("Mike Johnson")),
                   DataCell(Text("15 minutes ago")),
                   DataCell(Container(
                     padding: EdgeInsets.all(4),
-                    color: Colors.lightGreenAccent,
-                    child: Text("Completed"),
+                    child: Text("Completed", style: TextStyle(color: Colors.green),),
                   )),
-                ]),
-                DataRow(cells: [
+                  ]),
+                  DataRow(cells: [
                   DataCell(Text("Fee Structure Updated")),
                   DataCell(Text("David Brown")),
                   DataCell(Text("1 hour ago")),
                   DataCell(Container(
                     padding: EdgeInsets.all(4),
-                    color: Colors.lightGreenAccent,
-                    child: Text("Completed"),
+                    child: Text("Completed", style: TextStyle(color: Colors.green),),
                   )),
-                ]),
-              ]
+                  ]),
+                ]
+                ),
+              )
             )
           ],
         ),
@@ -170,7 +175,7 @@ class MetricCard extends StatelessWidget {
               children: [
                 Text(title, style:TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
-                Text(title, style:TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
+                Text(value, style:TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
               ],
             )
           ],

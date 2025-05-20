@@ -176,6 +176,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             
                 try {
                   await ref.read(authProvider.notifier).login(username, password);
+                  
                   Navigator.pushReplacementNamed(context, "/dashboard");
                 }
                 catch (e) {

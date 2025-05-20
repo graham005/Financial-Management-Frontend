@@ -1,9 +1,13 @@
 import 'package:finance_management_frontend/Pages/Admin/admin_dashboard_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/fee-structure/fee_structure_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/student-onboarding/student_onboarding_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/user-management/user_management_screen.dart';
 //import 'package:finance_management_frontend/Pages/Auth/login.dart';
 import 'package:finance_management_frontend/Pages/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,11 +27,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Finance Management System',
-      theme: ThemeData(primarySwatch: Colors.blue),
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(textTheme: TextTheme(bodyMedium: TextStyle(fontFamily: GoogleFonts.underdog().fontFamily))),
       initialRoute: "/",
       routes: {
-        "/": (context) => AdminDashboardScreen(),
+        "/": (context) => FeeStructureScreen(),
         "/dashboard": (context) => DashboardScreen(),
       }
     );

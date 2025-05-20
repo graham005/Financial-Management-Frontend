@@ -34,7 +34,9 @@ class UserProvider extends StateNotifier<List<User>> {
     final List<dynamic> data = response.data;
     state = data.map((json) => User.fromJson(json)).toList();
   }
+
 }
+
 
 final userProvider = StateNotifierProvider<UserProvider, List<User>> ((ref) {
   return UserProvider();
