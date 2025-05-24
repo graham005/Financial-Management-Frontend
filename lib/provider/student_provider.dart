@@ -6,13 +6,25 @@ class Student {
   final String name;
   final String grade;
   final String parentName;
+  final String parentPhoneNumber;
 
   Student({
     required this.admissionNumber,
     required this.name,
     required this.grade,
     required this.parentName,
+    required this.parentPhoneNumber
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "admissionNumber": admissionNumber,
+      "name": name,
+      "grade": grade,
+      "parentName": parentName,
+      "parentPhoneNumber": parentPhoneNumber
+    };
+  }
 
   factory Student.fromJson(Map<String, dynamic> json) {
     return Student(
@@ -20,6 +32,7 @@ class Student {
       name: json["name"], 
       grade: json["grade"], 
       parentName: json["parentName"],
+      parentPhoneNumber: json["parentPnoneNumber"]
     );
   }
 }

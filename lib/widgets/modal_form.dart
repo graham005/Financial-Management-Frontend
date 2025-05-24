@@ -15,22 +15,31 @@ class ModalForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(title),
-      content: SingleChildScrollView(
+      title: Center(child: Text(title)),
+      content: SizedBox(
+      width: 280,
+      child: SingleChildScrollView(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: children,
+        mainAxisSize: MainAxisSize.min,
+        children: children,
         ),
       ),
+      ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context), 
-          child: Text("Cancel")
-        ),
-        ElevatedButton(
-          onPressed: onSave, 
-          child: Text("Save"),
-        )
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextButton(
+        onPressed: () => Navigator.pop(context), 
+        child: Text("Cancel", style: TextStyle(color: Colors.red,)),
+          ),
+          SizedBox(width: 20),
+          ElevatedButton(
+        onPressed: onSave, 
+        child: Text("Save", style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      )
       ],
     );
   }
