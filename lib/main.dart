@@ -1,6 +1,4 @@
-import 'package:finance_management_frontend/Pages/Admin/admin_dashboard_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/fee-structure/fee_structure_screen.dart';
-import 'package:finance_management_frontend/Pages/Admin/student-onboarding/student_onboarding_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/user-management/user_management_screen.dart';
 //import 'package:finance_management_frontend/Pages/Auth/login.dart';
 import 'package:finance_management_frontend/Pages/dashboard.dart';
@@ -31,7 +29,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(textTheme: TextTheme(bodyMedium: TextStyle(fontFamily: GoogleFonts.underdog().fontFamily))),
       initialRoute: "/",
       routes: {
-        "/": (context) => FeeStructureScreen(),
+        "/": (context) => UserManagementScreen(),
         "/dashboard": (context) => DashboardScreen(),
       }
     );
