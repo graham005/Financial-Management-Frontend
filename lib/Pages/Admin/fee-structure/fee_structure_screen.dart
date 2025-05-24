@@ -1,11 +1,102 @@
+import 'package:dio/dio.dart';
 import 'package:finance_management_frontend/provider/fee_structure_provider.dart';
+import 'package:finance_management_frontend/services/delete_service.dart';
+import 'package:finance_management_frontend/widgets/confirmation_dialog.dart';
+import 'package:finance_management_frontend/widgets/modal_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class FeeStructureScreen extends ConsumerWidget{
-  const FeeStructureScreen({super.key});
+  FeeStructureScreen({super.key});
+  final DeleteService _deleteService = DeleteService();
+  
+
+  void _showFeeStructureForm(BuildContext context, {Map<String, dynamic>? feeData}) {
+    final isEdit = feeData != null;
+    String? selectedGrade = feeData?["grade"];
+    final term1Controller = TextEditingController(text: feeData?["term1Fee"]?.toString());
+    final term2Controller = TextEditingController(text: feeData?["term2Fee"]?.toString());
+    final term3Controller = TextEditingController(text: feeData?["term3Fee"]?.toString());
+
+    showDialog(
+      context: context, 
+      builder: (context) => ModalForm(
+        title: isEdit ? "Edit Fee Structure": "Add New Fee Structure", 
+        onSave: () async {
+          final grade = selectedGrade;
+          final term1Fee = double.tryParse(term1Controller.text) ?? 0;
+          final term2Fee = double.tryParse(term2Controller.text) ?? 0;
+          final term3Fee = double.tryParse(term3Controller.text) ?? 0;
+
+          if ([grade, term1Fee, term2Fee, term3Fee].any((field) => field == null || field ==0)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Please fill all fields with valid value")),
+            );
+            return;
+          }
+
+          try{
+            final dio = Dio(BaseOptions(baseUrl: "")); //TODO: Add base URL
+            if(isEdit) {
+              await dio.put("/feestructure/${feeData["id"]}", data: {
+                "gradeName": grade,
+                "term1Fee": term1Fee,
+                "term2Fee": term2Fee,
+                "term3Fee": term3Fee,
+              });
+            }
+            else {
+              await dio.post("/feestructure", data: {
+                "gradeName": grade,
+                "term1Fee": term1Fee,
+                "term2Fee": term2Fee,
+                "term3Fee": term3Fee,
+              });
+            }
+
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(isEdit ? "Fee structure updated successfully" : "Fee structure added successfully"))
+            );
+          } catch (e){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("An error occurred: $e")),
+            );
+          }
+        },
+        children: [
+          DropdownButtonFormField(
+            value: selectedGrade,
+            items: ["Grade 1", "Grade 2", "Grade 3"].map((grade) {
+              return DropdownMenuItem(value: grade, child: Text(grade));
+            }).toList(), 
+            onChanged: (value) => selectedGrade = value,
+            decoration: InputDecoration(labelText: "Grade"),
+          ),
+          SizedBox(height: 16),
+          TextField(
+            controller: term1Controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: "Term 1 Fee"),
+          ),
+          SizedBox(height: 16),
+          TextField(
+            controller: term2Controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: "Term 2 Fee"),
+          ),
+          SizedBox(height: 16),
+          TextField(
+            controller: term3Controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: "Term 3 Fee"),
+          ),
+        ], 
+      )
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,12 +132,14 @@ class FeeStructureScreen extends ConsumerWidget{
                   }).toList(), 
                   onChanged: (value) {},
                 ),
-                SizedBox(width: 16),
+                SizedBox(width: 10),
                 Spacer(),
-                ElevatedButton(
-                  onPressed: () {},  //TODO: Add link to page to add new fee structure
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  child: Text("+ Add New Fee Structure", style: GoogleFonts.underdog(color: Colors.white)),
+                Flexible(
+                  child: ElevatedButton(
+                    onPressed: () => _showFeeStructureForm(context),  
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                    child: Text("+ Add New Fee Structure", style: GoogleFonts.underdog(color: Colors.white)),
+                  ),
                 )
               ],
             ),
@@ -72,11 +165,18 @@ class FeeStructureScreen extends ConsumerWidget{
                       children: [
                         IconButton(
                           icon: Icon(Icons.edit),
-                          onPressed: () {}, // TODO: Redirect to edit fee structure page
+                          onPressed: () => _showFeeStructureForm(context, feeData: fs.toJson()),
                         ),
                         IconButton(
                           icon: Icon(Icons.delete),
-                          onPressed: () {}, // TODO: Redirect to delete fee structure page
+                          onPressed: () async {
+                          final shouldDelete = await showConfirmationDialog(
+                            context, 
+                            "Are you sure you want to delete this fee structure?",
+                          );
+
+                          if (shouldDelete) () => _deleteService.deleteFeeStructure(context, fs.id);
+                          },
                         )
                       ],
                     )

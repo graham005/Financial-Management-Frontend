@@ -18,6 +18,17 @@ class FeeStructure {
     required this.totalFee,
   });
 
+  Map<String, dynamic> toJson(){
+    return {
+      "id": id,
+      "grade": grade,
+      "term1Fee": term1Fee,
+      "term2Fee": term2Fee,
+      "term3Fee": term3Fee,
+      "totalFee": totalFee,
+    };
+  }
+
   factory FeeStructure.fromJson(Map<String, dynamic> json) {
     return FeeStructure(
       id: json["id"], 
