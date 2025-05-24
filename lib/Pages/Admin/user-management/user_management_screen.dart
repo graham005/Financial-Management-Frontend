@@ -1,91 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:finance_management_frontend/provider/user_management.dart';
+import 'package:finance_management_frontend/services/delete_service.dart';
+import 'package:finance_management_frontend/widgets/confirmation_dialog.dart';
 import 'package:finance_management_frontend/widgets/modal_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class UserManagementScreen extends ConsumerWidget{
-  const UserManagementScreen({super.key});
-
-  void _showUserForm(BuildContext context, {Map<String, dynamic>? userData}) {
-    final isEdit = userData != null;
-    final usernameController = TextEditingController(text: userData?["username"]);
-    final emailController = TextEditingController(text: userData?["email"]);
-    final passwordController = TextEditingController();
-    String? selectedRole = userData?["role"] ?? "Admin";
-
-    showDialog(
-      context: context, 
-      builder: (context) => ModalForm(
-        title: isEdit ? "Edit User" : "Add New User", 
-        onSave: () async {
-          final username = usernameController.text;
-          final email = emailController.text;
-          final password = passwordController.text;
-          final role = selectedRole;
-
-
-          if(username.isEmpty || email.isEmpty || (!isEdit && password.isEmpty)){
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Please fill all fields")),
-            );
-            return;
-          }
-
-          try {
-            final dio = Dio(BaseOptions(baseUrl: "")); //TODO: Add URL from .env
-            if (isEdit) {
-              await dio.put("/user/${userData["id"]}", data: {
-                "username": username,
-                "email": email,
-                "role": role,
-              });
-            } else {
-              await dio.post("/user", data: {
-                "username": username,
-                "email": email,
-                "password": password,
-                "role": role,
-              });
-            }
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(isEdit ? "User updated successfully" : "User added successfully"))
-            );
-          } catch (e){
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("An error occured: $e"))
-            );
-          }
-        },
-        children: [
-          TextField(
-            controller: usernameController,
-            decoration: InputDecoration(labelText: "Username"),
-          ),
-          TextField(
-            controller: emailController,
-            decoration: InputDecoration(labelText: "Email"),
-          ),
-          TextField(
-            controller: passwordController,
-            decoration: InputDecoration(labelText: "Password"),
-          ),
-
-          SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            value: selectedRole,
-            items: ["Admin", "Accountant"].map((role) {
-              return DropdownMenuItem(value: role, child: Text(role));
-            }).toList(), 
-            onChanged: (value) => selectedRole = value,
-            decoration: InputDecoration(labelText: "Role"),
-            )
-        ], 
-      )
-    );
-  }
+  final DeleteService _deleteService = DeleteService();
+  UserManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -154,12 +78,19 @@ class UserManagementScreen extends ConsumerWidget{
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () {},  // TODO: redirect to edit user page
+                        onPressed: () => _showUserForm(context, userData: user.toJson()),
                         icon: Icon(Icons.edit)
                       ),
                       IconButton(
-                        onPressed: () {}, // TODO: redirect to delete user page 
-                        icon: Icon(Icons.delete)
+                        icon: Icon(Icons.delete),
+                        onPressed: () async {
+                          final shouldDelete = await showConfirmationDialog(
+                            context, 
+                            "Are you sure you want to delete this user?",
+                          );
+
+                          if (shouldDelete) () => _deleteService.deleteUser(context, user.id);
+                        }, 
                       )
                     ],
                   )
@@ -167,24 +98,103 @@ class UserManagementScreen extends ConsumerWidget{
               ]);
             }).toList(),
           ),
-          SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {},  //TODO: Implement previous paging
-                child: Text("Previous", style: GoogleFonts.underdog())
-              ),
-              SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () {}, // TODO: Impement next paging
-                child: Text("Next", style: GoogleFonts.underdog())
-              )
-            ],
-          )
+          // SizedBox(height: 16),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   children: [
+          //     ElevatedButton(
+          //       onPressed: () {},  //TODO: Implement previous paging
+          //       child: Text("Previous", style: GoogleFonts.underdog())
+          //     ),
+          //     SizedBox(width: 8),
+          //     ElevatedButton(
+          //       onPressed: () {}, // TODO: Impement next paging
+          //       child: Text("Next", style: GoogleFonts.underdog())
+          //     )
+          //   ],
+          // )
         ],
       ),
     ),
    );
+  }
+
+  void _showUserForm(BuildContext context, {Map<String, dynamic>? userData}) {
+    final isEdit = userData != null;
+    final usernameController = TextEditingController(text: userData?["username"]);
+    final emailController = TextEditingController(text: userData?["email"]);
+    final passwordController = TextEditingController();
+    String? selectedRole = userData?["role"] ?? "Admin";
+
+    showDialog(
+      context: context, 
+      builder: (context) => ModalForm(
+        title: isEdit ? "Edit User" : "Add New User",
+        onSave: () async {
+          final username = usernameController.text;
+          final email = emailController.text;
+          final password = passwordController.text;
+          final role = selectedRole;
+
+
+          if(username.isEmpty || email.isEmpty || (!isEdit && password.isEmpty)){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Please fill all fields")),
+            );
+            return;
+          }
+
+          try {
+            final dio = Dio(BaseOptions(baseUrl: "")); //TODO: Add URL from .env
+            if (isEdit) {
+              await dio.put("/user/${userData["id"]}", data: {
+                "username": username,
+                "email": email,
+                "role": role,
+              });
+            } else {
+              await dio.post("/user", data: {
+                "username": username,
+                "email": email,
+                "password": password,
+                "role": role,
+              });
+            }
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(isEdit ? "User updated successfully" : "User added successfully"))
+            );
+          } catch (e){
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("An error occured: $e"))
+            );
+          }
+        },
+        children: [
+          TextField(
+            controller: usernameController,
+            decoration: InputDecoration(labelText: "Username"),
+          ),
+          TextField(
+            controller: emailController,
+            decoration: InputDecoration(labelText: "Email"),
+          ),
+          TextField(
+            controller: passwordController,
+            decoration: InputDecoration(labelText: "Password"),
+          ),
+
+          SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: selectedRole,
+            items: ["Admin", "Accountant"].map((role) {
+              return DropdownMenuItem(value: role, child: Text(role));
+            }).toList(), 
+            onChanged: (value) => selectedRole = value,
+            decoration: InputDecoration(labelText: "Role"),
+            )
+        ], 
+      )
+    );
   }
 }
