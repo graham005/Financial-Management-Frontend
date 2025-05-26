@@ -43,4 +43,17 @@ class DeleteService {
       );
     }
   }
+
+  Future<void> deleteOtherFee(BuildContext context, int feeId) async {
+    try {
+      await _dio.delete("/other-fees/$feeId");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Other fee deleted successfully")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An error occured while deleting the fee: $e")),
+      );
+    }
+  }
 }
