@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 class DeleteService {
-  final Dio _dio = Dio(BaseOptions(baseUrl: "")); // TODO: Add base URL from .env
+  final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
 
   Future<void> deleteUser(BuildContext context, String userId) async{
     try{
