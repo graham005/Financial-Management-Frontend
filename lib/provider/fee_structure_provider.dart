@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class FeeStructure {
@@ -44,7 +45,7 @@ class FeeStructure {
 class FeeStructureProvider extends StateNotifier<List<FeeStructure>>{
   FeeStructureProvider(): super([]);
 
-  final Dio _dio = Dio(BaseOptions(baseUrl: ""));
+  final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
 
   Future<void> fetchFeeStructure()async {
     final response = await _dio.get("/feestructure");

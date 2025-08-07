@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class Student {
@@ -40,7 +41,7 @@ class Student {
 class StudentProvider extends StateNotifier<List<Student>>{
   StudentProvider(): super([]);
 
-  final Dio _dio = Dio(BaseOptions(baseUrl: "")); //TODO: Add base url
+  final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? '')); 
 
   Future<void> fetchStudents() async {
     final response = await _dio.get("/student");
