@@ -1,14 +1,20 @@
-import 'package:finance_management_frontend/Pages/Admin/fee-structure/fee_structure_screen.dart';
-import 'package:finance_management_frontend/Pages/Admin/user-management/user_management_screen.dart';
-//import 'package:finance_management_frontend/Pages/Auth/login.dart';
-import 'package:finance_management_frontend/Pages/dashboard.dart';
+import 'package:finance_management_frontend/Pages/Admin/grades/grades_screen.dart';
+import '../Pages/Admin/fee-structure/fee_structure_screen.dart';
+import '../Pages/Admin/other-fees/other_fees_screen.dart';
+import '../Pages/Admin/student-onboarding/student_onboarding_screen.dart';
+import '../Pages/Admin/user-management/user_management_screen.dart';
+import '../Pages/Admin/admin_dashboard_screen.dart';
+import '../Pages/Auth/login.dart';
+import 'package:finance_management_frontend/provider/theme_provider.dart';
+import '../widgets/side_nav_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
     runApp(ProviderScope(
@@ -17,23 +23,50 @@ void main() {
   });
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+
     return MaterialApp(
       title: 'Finance Management System',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(textTheme: TextTheme(bodyMedium: TextStyle(fontFamily: GoogleFonts.underdog().fontFamily))),
-      initialRoute: "/",
+      theme: theme,
+      initialRoute: "/login",
+      navigatorObservers: [routeObserver],
       routes: {
-        "/": (context) => UserManagementScreen(),
-        "/dashboard": (context) => DashboardScreen(),
-      }
+        "/login": (context) => const LoginScreen(),
+        "/dashboard": (context) => const SideNavLayout(
+              currentRoute: '/dashboard',
+              child: AdminDashboardScreen(),
+            ),
+        "/user-management": (context) => SideNavLayout(
+              currentRoute: '/user-management',
+              child: UserManagementScreen(),
+            ),
+            "/grades": (context) => const SideNavLayout(
+              currentRoute: '/grades',
+              child: GradesScreen(),
+            ),
+        "/student-onboarding": (context) => SideNavLayout(
+              currentRoute: '/student-onboarding',
+              child: StudentOnboardingScreen(),
+            ),
+        "/fee-structure": (context) => SideNavLayout(
+              currentRoute: '/fee-structure',
+              child: FeeStructureScreen(),
+            ),
+        "/other-fees": (context) => const SideNavLayout(
+              currentRoute: '/other-fees',
+              child: OtherFeesScreen(),
+            ),
+      },
     );
   }
 }
+
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 
