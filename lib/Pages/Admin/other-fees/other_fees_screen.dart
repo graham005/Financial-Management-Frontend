@@ -4,6 +4,7 @@ import 'package:finance_management_frontend/services/delete_service.dart';
 import 'package:finance_management_frontend/widgets/confirmation_dialog.dart';
 import 'package:finance_management_frontend/widgets/modal_form.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OtherFeesScreen extends ConsumerStatefulWidget {
@@ -14,7 +15,7 @@ class OtherFeesScreen extends ConsumerStatefulWidget {
 }
 
 class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
-    final Dio _dio = Dio (BaseOptions(baseUrl: "")); //TODO:Add base url from .env
+    final Dio _dio = Dio (BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? '')); 
     final DeleteService _deleteService = DeleteService();
     List<OtherFee> _otherFees = [];
 
