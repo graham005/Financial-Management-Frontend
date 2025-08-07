@@ -4,6 +4,7 @@ import 'package:finance_management_frontend/services/delete_service.dart';
 import 'package:finance_management_frontend/widgets/confirmation_dialog.dart';
 import 'package:finance_management_frontend/widgets/modal_form.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -131,7 +132,7 @@ class StudentOnboardingScreen extends ConsumerWidget{
           }
 
           try{
-            final dio = Dio(BaseOptions(baseUrl: "")); //TODO: Add API URL from .env
+            final dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? '')); 
             if(isEdit) {
               await dio.put("/student/${studentData["id"]}", data: {
                 "admissionNumber": admissionNumber,
