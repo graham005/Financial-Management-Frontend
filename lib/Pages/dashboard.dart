@@ -9,10 +9,10 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Dashboard"),   
+        title: SelectableText("Dashboard"),   
       ),
       body: Center(
-        child: Text("Welcome to the Dashboard!"),
+        child: SelectableText("Welcome to the Dashboard!"),
       )
     );
   }

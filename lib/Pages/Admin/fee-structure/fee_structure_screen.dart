@@ -33,7 +33,7 @@ class FeeStructureScreen extends ConsumerWidget{
 
           if ([grade, term1Fee, term2Fee, term3Fee].any((field) => field == null || field ==0)) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Please fill all fields with valid value")),
+              SnackBar(content: SelectableText("Please fill all fields with valid value")),
             );
             return;
           }
@@ -59,11 +59,11 @@ class FeeStructureScreen extends ConsumerWidget{
 
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(isEdit ? "Fee structure updated successfully" : "Fee structure added successfully"))
+              SnackBar(content: SelectableText(isEdit ? "Fee structure updated successfully" : "Fee structure added successfully"))
             );
           } catch (e){
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("An error occurred: $e")),
+              SnackBar(content: SelectableText("An error occurred: $e")),
             );
           }
         },
@@ -71,7 +71,7 @@ class FeeStructureScreen extends ConsumerWidget{
           DropdownButtonFormField(
             value: selectedGrade,
             items: ["Grade 1", "Grade 2", "Grade 3"].map((grade) {
-              return DropdownMenuItem(value: grade, child: Text(grade));
+              return DropdownMenuItem(value: grade, child: SelectableText(grade));
             }).toList(), 
             onChanged: (value) => selectedGrade = value,
             decoration: InputDecoration(labelText: "Grade"),
@@ -106,7 +106,7 @@ class FeeStructureScreen extends ConsumerWidget{
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Fee Structure Management", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
+        title: SelectableText("Fee Structure Management", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -128,7 +128,7 @@ class FeeStructureScreen extends ConsumerWidget{
                   items: ["All Grades", "Grade 1", "Grade 2"].map((grade) {
                     return DropdownMenuItem(
                       value: grade,
-                      child: Text(grade),
+                      child: SelectableText(grade),
                     );
                   }).toList(), 
                   onChanged: (value) {},
@@ -139,7 +139,7 @@ class FeeStructureScreen extends ConsumerWidget{
                   child: ElevatedButton(
                     onPressed: () => _showFeeStructureForm(context),  
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                    child: Text("+ Add New Fee Structure", style: GoogleFonts.underdog(color: Colors.white)),
+                    child: SelectableText("+ Add New Fee Structure", style: GoogleFonts.underdog(color: Colors.white)),
                   ),
                 )
               ],
@@ -147,20 +147,20 @@ class FeeStructureScreen extends ConsumerWidget{
             SizedBox(height: 16),
             DataTable(
               columns: [
-                DataColumn(label: Text("Grade", style: GoogleFonts.underdog())),
-                DataColumn(label: Text("Term 1 Fee", style: GoogleFonts.underdog())),
-                DataColumn(label: Text("Term 2 Fee", style: GoogleFonts.underdog())),
-                DataColumn(label: Text("Term 3 Fee", style: GoogleFonts.underdog())),
-                DataColumn(label: Text("Total Fee", style: GoogleFonts.underdog())),
-                DataColumn(label: Text("Actions", style: GoogleFonts.underdog())),
+                DataColumn(label: SelectableText("Grade", style: GoogleFonts.underdog())),
+                DataColumn(label: SelectableText("Term 1 Fee", style: GoogleFonts.underdog())),
+                DataColumn(label: SelectableText("Term 2 Fee", style: GoogleFonts.underdog())),
+                DataColumn(label: SelectableText("Term 3 Fee", style: GoogleFonts.underdog())),
+                DataColumn(label: SelectableText("Total Fee", style: GoogleFonts.underdog())),
+                DataColumn(label: SelectableText("Actions", style: GoogleFonts.underdog())),
               ], 
               rows: feeStructures.map((fs) {
                 return DataRow(cells: [
-                  DataCell(Text(fs.grade, style: GoogleFonts.underdog())),
-                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term1Fee), style: GoogleFonts.underdog())),
-                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term2Fee), style: GoogleFonts.underdog())),
-                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.term3Fee), style: GoogleFonts.underdog())),
-                  DataCell(Text(NumberFormat.currency(symbol: "Ksh").format(fs.totalFee), style: GoogleFonts.underdog())),
+                  DataCell(SelectableText(fs.grade, style: GoogleFonts.underdog())),
+                  DataCell(SelectableText(NumberFormat.currency(symbol: "Ksh").format(fs.term1Fee), style: GoogleFonts.underdog())),
+                  DataCell(SelectableText(NumberFormat.currency(symbol: "Ksh").format(fs.term2Fee), style: GoogleFonts.underdog())),
+                  DataCell(SelectableText(NumberFormat.currency(symbol: "Ksh").format(fs.term3Fee), style: GoogleFonts.underdog())),
+                  DataCell(SelectableText(NumberFormat.currency(symbol: "Ksh").format(fs.totalFee), style: GoogleFonts.underdog())),
                   DataCell(
                     Row(
                       children: [

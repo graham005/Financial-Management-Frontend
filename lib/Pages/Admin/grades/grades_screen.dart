@@ -53,7 +53,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Grades Management", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
+        title: SelectableText("Grades Management", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
         backgroundColor: AppColors.primary,
         automaticallyImplyLeading: false,
       ),
@@ -122,7 +122,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                       ),
                     ),
                     icon: const Icon(Icons.add),
-                    label: Text("Add New Grade", style: GoogleFonts.underdog(fontWeight: FontWeight.w600)),
+                    label: SelectableText("Add New Grade", style: GoogleFonts.underdog(fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -159,7 +159,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                           color: AppColors.error,
                         ),
                         const SizedBox(height: 16),
-                        Text(
+                        SelectableText(
                           "Error loading grades",
                           style: GoogleFonts.underdog(
                             fontSize: 18,
@@ -168,7 +168,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
+                        SelectableText(
                           error.toString(),
                           style: GoogleFonts.underdog(
                             color: isDark ? Colors.white70 : Colors.black54,
@@ -183,7 +183,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                           ),
-                          child: Text(
+                          child: SelectableText(
                             "Retry",
                             style: GoogleFonts.underdog(color: Colors.white),
                           ),
@@ -212,7 +212,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                               color: AppColors.primary.withValues(alpha: 0.5),
                             ),
                             const SizedBox(height: 16),
-                            Text(
+                            SelectableText(
                               "No grades found",
                               style: GoogleFonts.underdog(
                                 fontSize: 18,
@@ -233,19 +233,19 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                         ),
                         columns: [
                           DataColumn(
-                            label: Text(
+                            label: SelectableText(
                               "ID",
                               style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                             ),
                           ),
                           DataColumn(
-                            label: Text(
+                            label: SelectableText(
                               "GRADE NAME",
                               style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                             ),
                           ),
                           DataColumn(
-                            label: Text(
+                            label: SelectableText(
                               "ACTIONS",
                               style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                             ),
@@ -254,7 +254,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                         rows: filtered.map((grade) {
                           return DataRow(
                             cells: [
-                              DataCell(Text(grade.id, style: GoogleFonts.underdog())),
+                              DataCell(SelectableText(grade.id, style: GoogleFonts.underdog())),
                               DataCell(
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -265,7 +265,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                                       color: AppColors.primary.withValues(alpha: 0.3),
                                     ),
                                   ),
-                                  child: Text(
+                                  child: SelectableText(
                                     grade.name,
                                     style: GoogleFonts.underdog(
                                       fontWeight: FontWeight.w600,
@@ -304,7 +304,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
                                           if (mounted) {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
-                                                content: Text(
+                                                content: SelectableText(
                                                   success 
                                                       ? "Grade deleted successfully"
                                                       : "Failed to delete grade",
@@ -349,7 +349,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
           if (name.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text("Please enter a grade name", style: GoogleFonts.underdog()),
+                content: SelectableText("Please enter a grade name", style: GoogleFonts.underdog()),
                 backgroundColor: AppColors.error,
               ),
             );
@@ -372,7 +372,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> with RouteAware {
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
+                content: SelectableText(
                   success
                       ? (isEdit ? "Grade updated successfully" : "Grade added successfully")
                       : "An error occurred",

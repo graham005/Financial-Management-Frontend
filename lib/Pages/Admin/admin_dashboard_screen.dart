@@ -41,7 +41,7 @@ class AdminDashboardScreen extends ConsumerWidget{
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        SelectableText(
                           "Welcome to Admin Dashboard",
                           style: GoogleFonts.underdog(
                             fontSize: 24,
@@ -50,7 +50,7 @@ class AdminDashboardScreen extends ConsumerWidget{
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
+                        SelectableText(
                           "Manage your school's financial operations efficiently",
                           style: GoogleFonts.underdog(
                             fontSize: 14,
@@ -113,7 +113,7 @@ class AdminDashboardScreen extends ConsumerWidget{
             const SizedBox(height: 32),
 
             // Quick Actions
-            Text(
+            SelectableText(
               "Quick Actions",
               style: GoogleFonts.underdog(
                 fontSize: 20,
@@ -149,7 +149,7 @@ class AdminDashboardScreen extends ConsumerWidget{
             const SizedBox(height: 32),
 
             // Recent Activity
-            Text(
+            SelectableText(
               "Recent Activity",
               style: GoogleFonts.underdog(
                 fontSize: 20,
@@ -174,25 +174,25 @@ class AdminDashboardScreen extends ConsumerWidget{
                 child: DataTable(
                   columns: [
                     DataColumn(
-                      label: Text(
+                      label: SelectableText(
                         "Action",
                         style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DataColumn(
-                      label: Text(
+                      label: SelectableText(
                         "User",
                         style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DataColumn(
-                      label: Text(
+                      label: SelectableText(
                         "Time",
                         style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                       ),
                     ),
                     DataColumn(
-                      label: Text(
+                      label: SelectableText(
                         "Status",
                         style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                       ),
@@ -214,9 +214,9 @@ class AdminDashboardScreen extends ConsumerWidget{
 
   DataRow _buildActivityRow(String action, String user, String time) {
     return DataRow(cells: [
-      DataCell(Text(action, style: GoogleFonts.underdog())),
-      DataCell(Text(user, style: GoogleFonts.underdog())),
-      DataCell(Text(time, style: GoogleFonts.underdog())),
+      DataCell(SelectableText(action, style: GoogleFonts.underdog())),
+      DataCell(SelectableText(user, style: GoogleFonts.underdog())),
+      DataCell(SelectableText(time, style: GoogleFonts.underdog())),
       DataCell(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -224,7 +224,7 @@ class AdminDashboardScreen extends ConsumerWidget{
             color: AppColors.success.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(
+          child: SelectableText(
             "Completed",
             style: GoogleFonts.underdog(
               color: AppColors.success,
@@ -286,7 +286,7 @@ class MetricCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
+          SelectableText(
             title,
             style: GoogleFonts.underdog(
               fontSize: 14,
@@ -294,7 +294,7 @@ class MetricCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          SelectableText(
             value,
             style: GoogleFonts.underdog(
               fontSize: 24,
@@ -326,7 +326,7 @@ class _QuickActionButton extends StatelessWidget {
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, color: Colors.white),
-      label: Text(
+      label: SelectableText(
         title,
         style: GoogleFonts.underdog(
           color: Colors.white,

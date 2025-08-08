@@ -34,7 +34,7 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
             });
         } catch (e){
             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("An error occurred while fetching other fees: $e")),
+                SnackBar(content: SelectableText("An error occurred while fetching other fees: $e")),
             );
         }
     }
@@ -42,23 +42,23 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
     @override
     Widget build(BuildContext context) {
         return Scaffold(
-            appBar: AppBar(title: Text("Other Fees Management")),
+            appBar: AppBar(title: SelectableText("Other Fees Management")),
             body: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                     children: [
                         DataTable(
                             columns: [
-                                DataColumn(label: Text("Fee Name")),
-                                DataColumn(label: Text("Grade")),
-                                DataColumn(label: Text("Amount")),
-                                DataColumn(label: Text("Actions")),
+                                DataColumn(label: SelectableText("Fee Name")),
+                                DataColumn(label: SelectableText("Grade")),
+                                DataColumn(label: SelectableText("Amount")),
+                                DataColumn(label: SelectableText("Actions")),
                             ], 
                             rows: _otherFees.map((fee) {
                                 return DataRow(cells: [
-                                    DataCell(Text(fee.name)),
-                                    DataCell(Text(fee.gradeName)),
-                                    DataCell(Text("${fee.amount}")),
+                                    DataCell(SelectableText(fee.name)),
+                                    DataCell(SelectableText(fee.gradeName)),
+                                    DataCell(SelectableText("${fee.amount}")),
                                     DataCell(
                                         Row(children: [
                                             IconButton(
@@ -108,7 +108,7 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
 
                     if ([name, grade, amount].any((field) => field == null || field == 0)) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Please fill all fields with valid values"))
+                            SnackBar(content: SelectableText("Please fill all fields with valid values"))
                         );
                         return;
                     }
@@ -131,11 +131,11 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
                         Navigator.pop(context);
                         fetchOtherFees();
                         ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(isEdit ? "Other fee updated successfully" : "Other fee added successfully"))
+                            SnackBar(content: SelectableText(isEdit ? "Other fee updated successfully" : "Other fee added successfully"))
                         );
                     } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("An error occurred: $e")),
+                            SnackBar(content: SelectableText("An error occurred: $e")),
                         );
                     }
                 },
@@ -148,7 +148,7 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
                     DropdownButtonFormField<String>(
                         value: selectedGrade,
                         items: ["Grade 1", "Grade 2", "Grade 3"].map((grade) {
-                            return DropdownMenuItem(value: grade, child: Text(grade));
+                            return DropdownMenuItem(value: grade, child: SelectableText(grade));
                         }).toList(), 
                         onChanged: (value) => selectedGrade = value,
                         decoration: InputDecoration(labelText: "Grade"),

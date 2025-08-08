@@ -77,7 +77,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   child: CircleAvatar(
                                     radius: 28,
                                     backgroundColor: backgroundColors[index],
-                                    child: Text(
+                                    child: SelectableText(
                                       colorNames[index].substring(0, 1),
                                       style: GoogleFonts.underdog(
                                         color: Colors.white,
@@ -202,7 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text(
+                            SelectableText(
                               "Finance Management",
                               style: GoogleFonts.underdog(
                                 color: Colors.white,
@@ -211,7 +211,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
+                            SelectableText(
                               "Destiny Junior Academy",
                               style: GoogleFonts.underdog(
                                 color: Colors.white.withValues(alpha: 0.8),
@@ -225,7 +225,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const Spacer(),
                       
                       // Email Field
-                      Text(
+                      SelectableText(
                         "Email",
                         style: GoogleFonts.underdog(
                           color: Colors.white,
@@ -266,7 +266,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 20),
                       
                       // Password Field
-                      Text(
+                      SelectableText(
                         "Password",
                         style: GoogleFonts.underdog(
                           color: Colors.white,
@@ -351,7 +351,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                     ),
                                   )
-                                : Text(
+                                : SelectableText(
                                     "Sign In",
                                     style: GoogleFonts.underdog(
                                       color: backgroundColors[selectedColorIndex],
@@ -419,7 +419,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
+        content: SelectableText(
           message,
           style: GoogleFonts.underdog(),
         ),

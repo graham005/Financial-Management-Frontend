@@ -42,7 +42,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("User Management", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
+        title: SelectableText("User Management", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
         backgroundColor: AppColors.primary,
         automaticallyImplyLeading: false,
       ),
@@ -118,7 +118,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                       items: ["All Roles", "Admin", "Accountant"].map((role) {
                         return DropdownMenuItem(
                           value: role,
-                          child: Text(role, style: GoogleFonts.underdog()),
+                          child: SelectableText(role, style: GoogleFonts.underdog()),
                         );
                       }).toList(),
                       onChanged: (value) {
@@ -178,7 +178,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                           color: AppColors.error,
                         ),
                         const SizedBox(height: 16),
-                        Text(
+                        SelectableText(
                           "Error loading users",
                           style: GoogleFonts.underdog(
                             fontSize: 18,
@@ -187,7 +187,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
+                        SelectableText(
                           error.toString(),
                           style: GoogleFonts.underdog(
                             color: isDark ? Colors.white70 : Colors.black54,
@@ -202,7 +202,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                           ),
-                          child: Text(
+                          child: SelectableText(
                             "Retry",
                             style: GoogleFonts.underdog(color: Colors.white),
                           ),
@@ -226,7 +226,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                               color: AppColors.primary.withValues(alpha: 0.5),
                             ),
                             const SizedBox(height: 16),
-                            Text(
+                            SelectableText(
                               "No users found",
                               style: GoogleFonts.underdog(
                                 fontSize: 18,
@@ -247,31 +247,31 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                         ),
                         columns: [
                           DataColumn(
-                            label: Text(
+                            label: SelectableText(
                               "ID",
                               style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                             ),
                           ),
                           DataColumn(
-                            label: Text(
+                            label: SelectableText(
                               "USER",
                               style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                             ),
                           ),
                           DataColumn(
-                            label: Text(
+                            label: SelectableText(
                               "EMAIL",
                               style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                             ),
                           ),
                           DataColumn(
-                            label: Text(
+                            label: SelectableText(
                               "ROLE",
                               style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                             ),
                           ),
                           DataColumn(
-                            label: Text(
+                            label: SelectableText(
                               "ACTIONS",
                               style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                             ),
@@ -280,9 +280,9 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                         rows: _filteredUsers.map((user) {
                           return DataRow(
                             cells: [
-                              DataCell(Text(user.id, style: GoogleFonts.underdog())),
-                              DataCell(Text(user.username, style: GoogleFonts.underdog())),
-                              DataCell(Text(user.email, style: GoogleFonts.underdog())),
+                              DataCell(SelectableText(user.id, style: GoogleFonts.underdog())),
+                              DataCell(SelectableText(user.username, style: GoogleFonts.underdog())),
+                              DataCell(SelectableText(user.email, style: GoogleFonts.underdog())),
                               DataCell(
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -297,7 +297,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                                           : AppColors.secondary,
                                     ),
                                   ),
-                                  child: Text(
+                                  child: SelectableText(
                                     user.role,
                                     style: GoogleFonts.underdog(
                                       color: user.role == "Admin" 
@@ -337,7 +337,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
                                           if (mounted) {
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
-                                                content: Text(
+                                                content: SelectableText(
                                                   success 
                                                       ? "User deleted successfully"
                                                       : "Failed to delete user",
@@ -388,7 +388,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
           if (username.isEmpty || email.isEmpty || (!isEdit && password.isEmpty)) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text("Please fill all required fields", style: GoogleFonts.underdog()),
+                content: SelectableText("Please fill all required fields", style: GoogleFonts.underdog()),
                 backgroundColor: AppColors.error,
               ),
             );
@@ -416,7 +416,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
+                content: SelectableText(
                   success
                       ? (isEdit ? "User updated successfully" : "User added successfully")
                       : "An error occurred",
@@ -489,7 +489,7 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
             items: ["Admin", "Accountant"].map((role) {
               return DropdownMenuItem(
                 value: role,
-                child: Text(role, style: GoogleFonts.underdog()),
+                child: SelectableText(role, style: GoogleFonts.underdog()),
               );
             }).toList(),
             onChanged: (value) => selectedRole = value,

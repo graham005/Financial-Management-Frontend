@@ -10,11 +10,11 @@ class DeleteService {
     try{
       await _dio.delete("user/$userId");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User delted successfully"))
+        SnackBar(content: SelectableText("User delted successfully"))
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred while deleting the user: $e")),
+        SnackBar(content: SelectableText("An error occurred while deleting the user: $e")),
       );
     }
   }
@@ -23,11 +23,11 @@ class DeleteService {
     try {
       await _dio.delete("/student/$studentId"); // TODO:Check if corresponds with API
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Student deleted successfully"))
+        SnackBar(content: SelectableText("Student deleted successfully"))
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred while deleting the student: $e")),
+        SnackBar(content: SelectableText("An error occurred while deleting the student: $e")),
       );
     }
   }
@@ -36,11 +36,11 @@ class DeleteService {
     try {
       await _dio.delete("/feestructure/$feeStructureId");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Fee structure deleted successfully")),
+        SnackBar(content: SelectableText("Fee structure deleted successfully")),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred while deleting the fee structure: $e")),
+        SnackBar(content: SelectableText("An error occurred while deleting the fee structure: $e")),
       );
     }
   }
@@ -49,11 +49,11 @@ class DeleteService {
     try {
       await _dio.delete("/other-fees/$feeId");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Other fee deleted successfully")),
+        SnackBar(content: SelectableText("Other fee deleted successfully")),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occured while deleting the fee: $e")),
+        SnackBar(content: SelectableText("An error occured while deleting the fee: $e")),
       );
     }
   }

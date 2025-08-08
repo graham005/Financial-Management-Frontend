@@ -4,16 +4,16 @@ Future<bool> showConfirmationDialog(BuildContext context, String message) async 
   return await showDialog<bool>(
     context: context, 
     builder: (context) => AlertDialog(
-      title: Text("Confirm Action"),
-      content: Text(message),
+      title: SelectableText("Confirm Action"),
+      content: SelectableText(message),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false), 
-          child: Text("Cancel")
+          child: SelectableText("Cancel")
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true), 
-          child: Text("Yes, Delete")
+          child: SelectableText("Yes, Delete")
         )
       ],
     )
