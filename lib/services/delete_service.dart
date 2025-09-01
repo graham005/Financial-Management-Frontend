@@ -21,7 +21,7 @@ class DeleteService {
 
   Future<void> deleteStudent(BuildContext context, String studentId) async {
     try {
-      await _dio.delete("/student/$studentId"); // TODO:Check if corresponds with API
+      await _dio.delete("/student/$studentId");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: SelectableText("Student deleted successfully"))
       );
