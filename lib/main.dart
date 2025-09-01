@@ -1,8 +1,10 @@
-import 'package:finance_management_frontend/Pages/Admin/grades/grades_screen.dart';
-import '../Pages/Admin/fee-structure/fee_structure_screen.dart';
-import '../Pages/Admin/other-fees/other_fees_screen.dart';
-import '../Pages/Admin/student-onboarding/student_onboarding_screen.dart';
-import '../Pages/Admin/user-management/user_management_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/grades_screen.dart';
+import 'Pages/Accountant/payment_screen.dart';
+import 'Pages/Admin/fee_structure_screen.dart';
+import 'Pages/Admin/items_management.dart';
+import 'Pages/Admin/other_fees_screen.dart';
+import 'Pages/Admin/student_onboarding_screen.dart';
+import 'Pages/Admin/user_management_screen.dart';
 import '../Pages/Admin/admin_dashboard_screen.dart';
 import '../Pages/Auth/login.dart';
 import 'package:finance_management_frontend/provider/theme_provider.dart';
@@ -61,6 +63,14 @@ class MyApp extends ConsumerWidget {
         "/other-fees": (context) => const SideNavLayout(
               currentRoute: '/other-fees',
               child: OtherFeesScreen(),
+            ),
+        "/required-items": (context) => const SideNavLayout(
+              currentRoute: '/required-items',
+              child: ItemsManagementScreen(),
+            ),
+        "/payments": (context) => const SideNavLayout(
+              currentRoute: '/payments',
+              child: PaymentScreen(),
             ),
       },
     );

@@ -25,4 +25,5 @@ class AppColors {
   static const Color success = Colors.green;
   static const Color warning = Colors.orange;
   static const Color error = ueRed;
+  static const Color info = Color(0xFF2196F3);
 }
