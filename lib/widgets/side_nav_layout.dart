@@ -222,6 +222,12 @@ class SideNavLayout extends ConsumerWidget {
         route: '/other-fees',
         currentRoute: currentRoute,
       ),
+      _NavItem(
+        icon: Icons.assignment_turned_in,
+        title: 'Required Items',
+        route: '/required-items',
+        currentRoute: currentRoute,
+      ),
     ];
 
     final accountantItems = [
@@ -245,8 +251,8 @@ class SideNavLayout extends ConsumerWidget {
       ),
       _NavItem(
         icon: Icons.payment,
-        title: 'Other Fees',
-        route: '/other-fees',
+        title: 'Payments',
+        route: '/payments',
         currentRoute: currentRoute,
       ),
       _NavItem(
@@ -310,7 +316,6 @@ class _NavItemState extends State<_NavItem>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     _colorAnimation = ColorTween(
       begin: Colors.transparent,
       end: AppColors.primary.withValues(alpha: 0.08),

@@ -341,11 +341,11 @@ class _StudentModalFormState extends ConsumerState<StudentModalForm> {
       prefixIcon: Icon(icon, color: AppColors.primary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3)),
+        borderSide: BorderSide(color: AppColors.primary.withValues(alpha:0.3)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3)),
+        borderSide: BorderSide(color: AppColors.primary.withValues(alpha:0.3)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -357,8 +357,8 @@ class _StudentModalFormState extends ConsumerState<StudentModalForm> {
       ),
       filled: true,
       fillColor: isDark 
-          ? AppColors.darkBackground.withOpacity(0.5)
-          : AppColors.lightBackground.withOpacity(0.5),
+          ? AppColors.darkBackground.withValues(alpha:0.5)
+          : AppColors.lightBackground.withValues(alpha:0.5),
     );
   }
 
