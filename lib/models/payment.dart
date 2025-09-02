@@ -1,17 +1,23 @@
 class Payment {
   final String? id;
   final String studentId;
+  final String? studentName; // New field for payment history
   final double amount;
   final DateTime paymentDate;
   final String paymentMethod;
-  final List<FeeAllocation> feeAllocations;
+  final String? status; // New field for payment history
+  final List<String>? terms; // New field for payment history (simplified)
+  final List<FeeAllocation> feeAllocations; // Keep for payment creation
 
   Payment({
     this.id,
     required this.studentId,
+    this.studentName,
     required this.amount,
     required this.paymentDate,
     required this.paymentMethod,
+    this.status,
+    this.terms,
     required this.feeAllocations,
   });
 
@@ -19,9 +25,12 @@ class Payment {
     return Payment(
       id: json['id'],
       studentId: json['studentId'] ?? '',
+      studentName: json['studentName'], // New field
       amount: (json['amount'] ?? 0).toDouble(),
       paymentDate: DateTime.parse(json['paymentDate'] ?? DateTime.now().toIso8601String()),
       paymentMethod: json['paymentMethod'] ?? '',
+      status: json['status'], // New field
+      terms: (json['terms'] as List<dynamic>?)?.map((term) => term.toString()).toList(), // New field
       feeAllocations: (json['feeAllocations'] as List<dynamic>?)
           ?.map((allocation) => FeeAllocation.fromJson(allocation))
           .toList() ?? [],
@@ -32,9 +41,12 @@ class Payment {
     return {
       if (id != null) 'id': id,
       'studentId': studentId,
+      if (studentName != null) 'studentName': studentName,
       'amount': amount,
       'paymentDate': paymentDate.toIso8601String(),
       'paymentMethod': paymentMethod,
+      if (status != null) 'status': status,
+      if (terms != null) 'terms': terms,
       'feeAllocations': feeAllocations.map((allocation) => allocation.toJson()).toList(),
     };
   }
