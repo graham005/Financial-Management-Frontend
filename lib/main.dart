@@ -1,5 +1,6 @@
 import 'package:finance_management_frontend/Pages/Admin/grades_screen.dart';
-import 'Pages/Accountant/payment_screen.dart';
+import 'Pages/Accountant/fee_structure_display_screen.dart';
+import 'Pages/Accountant/students_display_screen.dart';
 import 'Pages/Admin/fee_structure_screen.dart';
 import 'Pages/Admin/items_management.dart';
 import 'Pages/Admin/other_fees_screen.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'Pages/Accountant/payment/student_selection_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,7 +72,15 @@ class MyApp extends ConsumerWidget {
             ),
         "/payments": (context) => const SideNavLayout(
               currentRoute: '/payments',
-              child: PaymentScreen(),
+              child: StudentSelectionScreen(),
+            ),
+        "accountant/students": (context) => const SideNavLayout(
+              currentRoute: 'accountant/students',
+              child: StudentsDisplayScreen(),
+            ),
+        "/accountant/fee-structure": (context) => const SideNavLayout(
+              currentRoute: '/accountant/fee-structure',
+              child: FeeStructureDisplayScreen(),
             ),
       },
     );

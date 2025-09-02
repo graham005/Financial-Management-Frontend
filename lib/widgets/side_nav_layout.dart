@@ -240,13 +240,13 @@ class SideNavLayout extends ConsumerWidget {
       _NavItem(
         icon: Icons.school,
         title: 'Students',
-        route: '/student-onboarding',
+        route: 'accountant/students',
         currentRoute: currentRoute,
       ),
       _NavItem(
         icon: Icons.attach_money,
         title: 'Fee Structure',
-        route: '/fee-structure',
+        route: '/accountant/fee-structure',
         currentRoute: currentRoute,
       ),
       _NavItem(
