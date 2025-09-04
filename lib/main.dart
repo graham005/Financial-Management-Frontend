@@ -1,5 +1,6 @@
 import 'package:finance_management_frontend/Pages/Admin/grades_screen.dart';
 import 'Pages/Accountant/fee_structure_display_screen.dart';
+import 'Pages/Accountant/items_received.dart';
 import 'Pages/Accountant/students_display_screen.dart';
 import 'Pages/Admin/fee_structure_screen.dart';
 import 'Pages/Admin/items_management.dart';
@@ -82,6 +83,10 @@ class MyApp extends ConsumerWidget {
               currentRoute: '/accountant/fee-structure',
               child: FeeStructureDisplayScreen(),
             ),
+        "/accountant/items-received": (context) => const SideNavLayout(
+            currentRoute: '/accountant/items-received',
+            child: ItemsReceivedScreen(),
+          ),
       },
     );
   }

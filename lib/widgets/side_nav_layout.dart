@@ -257,8 +257,8 @@ class SideNavLayout extends ConsumerWidget {
       ),
       _NavItem(
         icon: Icons.receipt,
-        title: 'Fee Collection',
-        route: '/fee-collection',
+        title: 'Items Received',
+        route: '/accountant/items-received',
         currentRoute: currentRoute,
       ),
       _NavItem(
