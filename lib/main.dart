@@ -1,10 +1,12 @@
+//import 'package:finance_management_frontend/Pages/Accountant/record_item_transaction_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/grades_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_list_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/requirement/student_requirements_screen.dart';
 import 'Pages/Accountant/fee_structure_display_screen.dart';
-import 'Pages/Accountant/items_received.dart';
 import 'Pages/Accountant/students_display_screen.dart';
 import 'Pages/Admin/fee_structure_screen.dart';
-import 'Pages/Admin/items_management.dart';
 import 'Pages/Admin/other_fees_screen.dart';
+import 'Pages/Admin/requirement/requirement_list_details_screen.dart';
 import 'Pages/Admin/student_onboarding_screen.dart';
 import 'Pages/Admin/user_management_screen.dart';
 import '../Pages/Admin/admin_dashboard_screen.dart';
@@ -51,7 +53,7 @@ class MyApp extends ConsumerWidget {
               currentRoute: '/user-management',
               child: UserManagementScreen(),
             ),
-            "/grades": (context) => const SideNavLayout(
+        "/grades": (context) => const SideNavLayout(
               currentRoute: '/grades',
               child: GradesScreen(),
             ),
@@ -67,10 +69,6 @@ class MyApp extends ConsumerWidget {
               currentRoute: '/other-fees',
               child: OtherFeesScreen(),
             ),
-        "/required-items": (context) => const SideNavLayout(
-              currentRoute: '/required-items',
-              child: ItemsManagementScreen(),
-            ),
         "/payments": (context) => const SideNavLayout(
               currentRoute: '/payments',
               child: StudentSelectionScreen(),
@@ -83,15 +81,28 @@ class MyApp extends ConsumerWidget {
               currentRoute: '/accountant/fee-structure',
               child: FeeStructureDisplayScreen(),
             ),
-        "/accountant/items-received": (context) => const SideNavLayout(
-            currentRoute: '/accountant/items-received',
-            child: ItemsReceivedScreen(),
-          ),
+        "/requirement-list": (context) => const SideNavLayout(
+              currentRoute: '/requirement-list',
+              child: RequirementListsScreen(),
+            ),
+        "/requirement-list-details": (context) {
+          final requirementListId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          return SideNavLayout(
+            currentRoute: '/requirement-list-details',
+            child: RequirementListDetailsScreen(requirementListId: requirementListId),
+          );
+        },
+        "/student-requirement": (context) => const SideNavLayout(
+              currentRoute: '/student-requirement',
+              child: StudentRequirementsScreen(),
+            ),
+        // "/record-item-transaction": (context) => const SideNavLayout(
+        //       currentRoute: '/record-item-transaction',
+        //       child: RecordTransactionScreen(),
+        //     ),
       },
     );
   }
 }
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
-
-

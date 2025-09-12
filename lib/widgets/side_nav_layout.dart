@@ -223,10 +223,16 @@ class SideNavLayout extends ConsumerWidget {
         currentRoute: currentRoute,
       ),
       _NavItem(
-        icon: Icons.assignment_turned_in,
-        title: 'Required Items',
-        route: '/required-items',
-        currentRoute: currentRoute,
+      icon: Icons.assignment_turned_in,
+      title: 'Required Items',
+      route: '/requirement-list',
+      currentRoute: currentRoute,
+      ),
+      _NavItem(
+      icon: Icons.school_outlined,
+      title: 'Student Requirements',
+      route: '/student-requirement',
+      currentRoute: currentRoute,
       ),
     ];
 
@@ -258,7 +264,7 @@ class SideNavLayout extends ConsumerWidget {
       _NavItem(
         icon: Icons.receipt,
         title: 'Items Received',
-        route: '/accountant/items-received',
+        route: '/items-received',
         currentRoute: currentRoute,
       ),
       _NavItem(
