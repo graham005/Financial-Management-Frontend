@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../provider/item_ledger_provider.dart';
 import '../../models/item_transaction.dart';
 import '../../utils/app_colors.dart';
+import '../../models/student_requirement.dart';
+import '../../models/requirement_status.dart';
 
 class RecordTransactionScreen extends ConsumerStatefulWidget {
   final String studentRequirementId;
@@ -19,16 +21,17 @@ class RecordTransactionScreen extends ConsumerStatefulWidget {
 
 class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _remarksController = TextEditingController();
+  final _notesController = TextEditingController(); // renamed
   final _monetaryAmountController = TextEditingController();
   
-  String _transactionType = 'ITEM';
+  String _transactionType = 'Item';
   final List<TransactionItem> _transactionItems = [];
+  final Map<String, String> _itemNotes = {}; // renamed
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _remarksController.dispose();
+    _notesController.dispose(); // renamed
     _monetaryAmountController.dispose();
     super.dispose();
   }
@@ -67,10 +70,10 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      if (_transactionType == 'MONEY') _buildMonetarySection(),
-                      if (_transactionType == 'ITEM') _buildItemsSection(requirement),
+                      if (_transactionType == 'Money') _buildMonetarySection(requirement),
+                      if (_transactionType == 'Item') _buildItemsSection(requirement),
                       const SizedBox(height: 16),
-                      _buildRemarksSection(),
+                      if (_transactionType == 'Money') _buildNotesSection(), // renamed
                       const SizedBox(height: 24),
                       _buildActionButtons(),
                     ],
@@ -84,7 +87,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
     );
   }
 
-  Widget _buildStudentInfoSection(requirement) {
+  Widget _buildStudentInfoSection(StudentRequirement requirement) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,
@@ -135,7 +138,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                 child: RadioListTile<String>(
                   title: const Text('Physical Items'),
                   subtitle: const Text('Record items received'),
-                  value: 'ITEM',
+                  value: 'Item',
                   groupValue: _transactionType,
                   onChanged: (value) {
                     setState(() {
@@ -150,7 +153,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                 child: RadioListTile<String>(
                   title: const Text('Money'),
                   subtitle: const Text('Record monetary contribution'),
-                  value: 'MONEY',
+                  value: 'Money',
                   groupValue: _transactionType,
                   onChanged: (value) {
                     setState(() {
@@ -167,7 +170,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
     );
   }
 
-  Widget _buildMonetarySection() {
+  Widget _buildMonetarySection(StudentRequirement requirement) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -183,6 +186,26 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Outstanding: ₦${requirement.outstandingValue.toStringAsFixed(2)}',
+            style: const TextStyle(color: Colors.orange),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final pct in [25, 50, 75, 100])
+                OutlinedButton(
+                  onPressed: () {
+                    final amt = requirement.outstandingValue * (pct / 100);
+                    _monetaryAmountController.text = amt.toStringAsFixed(2);
+                    setState(() {});
+                  },
+                  child: Text('$pct%'),
+                ),
+            ],
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -235,7 +258,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
     );
   }
 
-  Widget _buildItemsSection(requirement) {
+  Widget _buildItemsSection(StudentRequirement requirement) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -245,28 +268,25 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Text(
+              Text(
                 'Items Received',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: () => _showAddItemDialog(requirement),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Item'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                ),
-              ),
+              Spacer(),
             ],
           ),
+          const SizedBox(height: 12),
+
+          // Inline outstanding items picker with +/- steppers
+          _buildOutstandingItemsPicker(requirement),
+
           const SizedBox(height: 16),
+
           if (_transactionItems.isEmpty)
             Container(
               padding: const EdgeInsets.all(24),
@@ -281,7 +301,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                     SizedBox(height: 8),
                     Text('No items added yet'),
                     Text(
-                      'Click "Add Item" to record received items',
+                      'Use the + buttons above to add received items',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -297,37 +317,174 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
     );
   }
 
-  Widget _buildTransactionItemCard(int index, TransactionItem item) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        title: Text(item.itemName),
-        subtitle: Text('Quantity: ${item.quantity} | Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+  Widget _buildOutstandingItemsPicker(StudentRequirement requirement) {
+    // If there are no items at all, tell the user (not “fulfilled”)
+    if (requirement.items.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
           children: [
-            Text(
-              '₦${item.totalValue.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  _transactionItems.removeAt(index);
-                });
-              },
-              icon: const Icon(Icons.delete, color: Colors.red),
-            ),
+            Icon(Icons.info_outline, color: Colors.grey),
+            SizedBox(width: 8),
+            Expanded(child: Text('No items found for this requirement')),
           ],
         ),
-      ),
+      );
+    }
+
+    final outstanding = requirement.items
+        .where((RequirementStatus s) => s.outstandingQuantity > 0)
+        .toList();
+
+    if (outstanding.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.green.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 8),
+            Expanded(child: Text('All items have been fulfilled')),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: outstanding.map((s) {
+        final idx = _transactionItems.indexWhere((t) => t.itemId == s.itemId);
+        final currentQty = idx == -1 ? 0 : _transactionItems[idx].quantity;
+        final remaining = s.outstandingQuantity - currentQty;
+
+        void addOne() {
+          if (remaining <= 0) return;
+          setState(() {
+            if (idx == -1) {
+              _transactionItems.add(TransactionItem(
+                itemId: s.itemId,
+                itemName: s.itemName,
+                quantity: 1,
+                unitPrice: s.unitPrice,
+              ));
+            } else {
+              _transactionItems[idx] = TransactionItem(
+                itemId: _transactionItems[idx].itemId,
+                itemName: _transactionItems[idx].itemName,
+                quantity: _transactionItems[idx].quantity + 1,
+                unitPrice: _transactionItems[idx].unitPrice,
+              );
+            }
+          });
+        }
+
+        void removeOne() {
+          if (currentQty == 0) return;
+          setState(() {
+            if (currentQty == 1) {
+              _transactionItems.removeAt(idx);
+            } else {
+              _transactionItems[idx] = TransactionItem(
+                itemId: _transactionItems[idx].itemId,
+                itemName: _transactionItems[idx].itemName,
+                quantity: _transactionItems[idx].quantity - 1,
+                unitPrice: _transactionItems[idx].unitPrice,
+              );
+            }
+          });
+        }
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            title: Text(s.itemName),
+            subtitle: Text(
+              'Outstanding: ${s.outstandingQuantity} ${s.unit} • Unit: ₦${s.unitPrice.toStringAsFixed(2)}',
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Remove one',
+                  onPressed: currentQty > 0 ? removeOne : null,
+                  icon: const Icon(Icons.remove_circle_outline),
+                ),
+                Text('$currentQty'),
+                IconButton(
+                  tooltip: 'Add one',
+                  onPressed: remaining > 0 ? addOne : null,
+                  icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
-  Widget _buildRemarksSection() {
+  Widget _buildTransactionItemCard(int index, TransactionItem item) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 8, top: 8, bottom: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(item.itemName),
+              subtitle: Text('Quantity: ${item.quantity} | Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '₦${item.totalValue.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _transactionItems.removeAt(index);
+                        _itemNotes.remove(item.itemId); // NEW
+                      });
+                    },
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              initialValue: _itemNotes[item.itemId] ?? '',
+              onChanged: (v) => _itemNotes[item.itemId] = v,
+              decoration: const InputDecoration(
+                labelText: 'Item note (required)',
+                border: OutlineInputBorder(),
+              ),
+              validator: (v) {
+                final val = (v ?? '').trim();
+                if (_transactionType == 'Item' && val.isEmpty) {
+                  return 'Note is required for this item';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
+      ));
+  }
+
+  Widget _buildNotesSection() { // renamed
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -338,7 +495,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Remarks (Optional)',
+            'Notes (Optional)', // renamed
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -346,9 +503,9 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
           ),
           const SizedBox(height: 12),
           TextFormField(
-            controller: _remarksController,
+            controller: _notesController,
             decoration: const InputDecoration(
-              hintText: 'Add any additional notes about this transaction',
+              hintText: 'Add any additional notes about this transaction', // renamed
               border: OutlineInputBorder(),
             ),
             maxLines: 3,
@@ -388,7 +545,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
     );
   }
 
-  void _showAddItemDialog(requirement) {
+  void _showAddItemDialog(StudentRequirement requirement) {
     final itemController = TextEditingController();
     final quantityController = TextEditingController();
     final priceController = TextEditingController();
@@ -412,15 +569,18 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                     border: OutlineInputBorder(),
                   ),
                   items: requirement.items
-                      .where((item) => item.outstandingQuantity > 0)
-                      .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
-                            value: item.itemId,
-                            child: Text('${item.itemName} (Outstanding: ${item.outstandingQuantity} ${item.unit})'),
-                          ))
+                      .where((RequirementStatus item) => item.outstandingQuantity > 0)
+                      .map<DropdownMenuItem<String>>(
+                        (RequirementStatus item) => DropdownMenuItem(
+                          value: item.itemId,
+                          child: Text('${item.itemName} (Outstanding: ${item.outstandingQuantity} ${item.unit})'),
+                        ),
+                      )
                       .toList(),
                   onChanged: (value) {
                     selectedItemId = value;
-                    final item = requirement.items.firstWhere((item) => item.itemId == value);
+                    final RequirementStatus item = requirement.items
+                        .firstWhere((RequirementStatus i) => i.itemId == value);
                     itemController.text = item.itemName;
                     priceController.text = item.unitPrice.toString();
                   },
@@ -447,7 +607,8 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                             return 'Enter valid quantity';
                           }
                           if (selectedItemId != null) {
-                            final item = requirement.items.firstWhere((item) => item.itemId == selectedItemId);
+                            final RequirementStatus item = requirement.items
+                                .firstWhere((RequirementStatus i) => i.itemId == selectedItemId);
                             if (quantity > item.outstandingQuantity) {
                               return 'Cannot exceed outstanding quantity';
                             }
@@ -520,34 +681,116 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   Future<void> _recordTransaction() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_transactionType == 'ITEM' && _transactionItems.isEmpty) {
+    if (_transactionType == 'Item' && _transactionItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please add at least one item')),
       );
       return;
     }
 
-    setState(() => _isLoading = true);
+    // Build per-item money allocation for Money transactions
+    Map<String, double>? perItemMoney;
+    if (_transactionType == 'Money') {
+      final amount = double.tryParse(_monetaryAmountController.text.trim()) ?? 0;
+      if (amount <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Enter a valid amount')),
+        );
+        return;
+      }
+      if (_notesController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notes are required')),
+        );
+        return;
+      }
 
+      // Fetch the requirement to access outstanding per item
+      final requirement = await ref.read(studentRequirementDetailsProvider(widget.studentRequirementId).future);
+
+      final outstanding = requirement.items
+          .where((s) => s.outstandingValue > 0)
+          .toList();
+
+      final totalOutstanding = outstanding.fold<double>(0, (sum, s) => sum + s.outstandingValue);
+      if (outstanding.isEmpty || totalOutstanding <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No outstanding items to allocate money to')),
+        );
+        return;
+      }
+
+      // Proportional allocation with rounding fix
+      perItemMoney = {};
+      double allocated = 0;
+      for (var i = 0; i < outstanding.length; i++) {
+        final s = outstanding[i];
+        double share = (amount * (s.outstandingValue / totalOutstanding));
+        // Round to 2dp
+        share = double.parse(share.toStringAsFixed(2));
+        // Cap by outstandingValue
+        final capped = share > s.outstandingValue ? s.outstandingValue : share;
+
+        // Push, adjust last to fix rounding residue
+        if (i == outstanding.length - 1) {
+          final residue = double.parse((amount - allocated).toStringAsFixed(2));
+          perItemMoney[s.itemId] = residue > s.outstandingValue ? s.outstandingValue : residue;
+        } else {
+          perItemMoney[s.itemId] = capped;
+          allocated = double.parse((allocated + capped).toStringAsFixed(2));
+        }
+      }
+
+      // Remove zero entries
+      perItemMoney.removeWhere((_, v) => v <= 0);
+      if (perItemMoney.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Allocation resulted in zero amounts')),
+        );
+        return;
+      }
+    }
+
+    if (_transactionType == 'Item') {
+      final missing = _transactionItems.where((t) => (_itemNotes[t.itemId] ?? '').trim().isEmpty).toList();
+      if (missing.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Add a note for each item')),
+        );
+        return;
+      }
+    }
+
+    setState(() => _isLoading = true);
     try {
       final success = await ref.read(studentRequirementProvider.notifier).recordTransaction(
         studentRequirementId: widget.studentRequirementId,
         transactionType: _transactionType,
-        monetaryAmount: _transactionType == 'MONEY' 
-            ? double.tryParse(_monetaryAmountController.text) 
+        monetaryAmount: _transactionType == 'Money'
+            ? double.tryParse(_monetaryAmountController.text)
             : null,
-        items: _transactionItems,
-        remarks: _remarksController.text.trim().isEmpty 
-            ? null 
-            : _remarksController.text.trim(),
+        items: _transactionType == 'Item' ? _transactionItems : const <TransactionItem>[],
+        notes: _transactionType == 'Money' ? _notesController.text.trim() : null,
+        perItemNotes: _transactionType == 'Item' ? _itemNotes : null,
+        perItemMoney: _transactionType == 'Money' ? perItemMoney : null,
       );
 
-      if (success && mounted) {
+      if (!mounted) return;
+
+      if (success) {
+        // Ensure details page reloads fresh values
+        ref.invalidate(studentRequirementDetailsProvider(widget.studentRequirementId));
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Transaction recorded successfully')),
         );
+      } else {
+        final err = ref.read(studentRequirementProvider).error ?? 'Failed to record transaction';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
       }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
