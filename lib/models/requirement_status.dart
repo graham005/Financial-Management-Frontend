@@ -1,5 +1,5 @@
 class RequirementStatus {
-  final String itemId;
+  final String itemId; // requirement item id from backend
   final String itemName;
   final String unit;
   final int requiredQuantity;
@@ -24,17 +24,50 @@ class RequirementStatus {
   });
 
   factory RequirementStatus.fromJson(Map<String, dynamic> json) {
+    int _toInt(dynamic v) {
+      if (v is int) return v;
+      if (v is double) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? 0;
+      return 0;
+    }
+
+    double _toDouble(dynamic v) {
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0.0;
+      return 0.0;
+    }
+
+    final req = _toInt(json['requiredQuantity']);
+    final rec = _toInt(json['receivedQuantity']);
+    final outQty = json['outstandingQuantity'] != null
+        ? _toInt(json['outstandingQuantity'])
+        : (req - rec > 0 ? req - rec : 0);
+
+    final unitP = _toDouble(json['unitPrice']);
+    final total = req * unitP;
+
+    // Backend sends outstanding money as `monetaryEquivalent`
+    final outVal = json['monetaryEquivalent'] != null
+        ? _toDouble(json['monetaryEquivalent'])
+        : outQty * unitP;
+
+    // Derive received value if not present
+    final recVal = (json['receivedValue'] != null)
+        ? _toDouble(json['receivedValue'])
+        : (total - outVal < 0 ? 0.0 : total - outVal);
+
     return RequirementStatus(
-      itemId: json['itemId'] ?? '',
-      itemName: json['itemName'] ?? '',
-      unit: json['unit'] ?? '',
-      requiredQuantity: json['requiredQuantity'] ?? 0,
-      receivedQuantity: json['receivedQuantity'] ?? 0,
-      outstandingQuantity: json['outstandingQuantity'] ?? 0,
-      unitPrice: (json['unitPrice'] ?? 0.0).toDouble(),
-      totalPrice: (json['totalPrice'] ?? 0.0).toDouble(),
-      receivedValue: (json['receivedValue'] ?? 0.0).toDouble(),
-      outstandingValue: (json['outstandingValue'] ?? 0.0).toDouble(),
+      // Backend detail payload uses `itemId` for the requirement item id
+      itemId: (json['itemId'] ?? json['requirementItemId'] ?? '').toString(),
+      itemName: (json['itemName'] ?? '').toString(),
+      unit: (json['unit'] ?? '').toString(),
+      requiredQuantity: req,
+      receivedQuantity: rec,
+      outstandingQuantity: outQty,
+      unitPrice: unitP,
+      totalPrice: total,
+      receivedValue: recVal,
+      outstandingValue: outVal,
     );
   }
 

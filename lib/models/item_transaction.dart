@@ -2,10 +2,10 @@ class ItemTransaction {
   final String id;
   final String studentRequirementId;
   final DateTime transactionDate;
-  final String transactionType; // 'ITEM' or 'MONEY'
+  final String transactionType; // 'Item' or 'Money'
   final double? monetaryAmount;
   final List<TransactionItem> items;
-  final String? remarks;
+  final String? notes; // renamed
 
   ItemTransaction({
     required this.id,
@@ -14,7 +14,7 @@ class ItemTransaction {
     required this.transactionType,
     this.monetaryAmount,
     required this.items,
-    this.remarks,
+    this.notes, // renamed
   });
 
   factory ItemTransaction.fromJson(Map<String, dynamic> json) {
@@ -29,7 +29,7 @@ class ItemTransaction {
               .map((item) => TransactionItem.fromJson(item))
               .toList()
           : [],
-      remarks: json['remarks'],
+      notes: json['notes'], // renamed
     );
   }
 
@@ -41,7 +41,7 @@ class ItemTransaction {
       'transactionType': transactionType,
       'monetaryAmount': monetaryAmount,
       'items': items.map((item) => item.toJson()).toList(),
-      'remarks': remarks,
+      'notes': notes, // renamed
     };
   }
 }
@@ -68,6 +68,8 @@ class TransactionItem {
     );
   }
 
+  double get totalValue => quantity * unitPrice;
+
   Map<String, dynamic> toJson() {
     return {
       'itemId': itemId,
@@ -76,6 +78,4 @@ class TransactionItem {
       'unitPrice': unitPrice,
     };
   }
-
-  double get totalValue => quantity * unitPrice;
 }

@@ -16,12 +16,18 @@ class RequirementItem {
   });
 
   factory RequirementItem.fromJson(Map<String, dynamic> json) {
+    double _toDouble(dynamic v) {
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0.0;
+      return 0.0;
+    }
+
     return RequirementItem(
-      id: json['id'] ?? '',
-      itemName: json['itemName'] ?? '',
-      requiredQuantity: json['requiredQuantity'] ?? 0,
-      unit: json['unit'] ?? '',
-      unitPrice: (json['unitPrice'] ?? 0.0).toDouble(),
+      id: (json['id'] ?? '').toString(),
+      itemName: (json['itemName'] ?? '').toString(),
+      requiredQuantity: _toDouble(json['requiredQuantity']),
+      unit: (json['unit'] ?? '').toString(),
+      unitPrice: _toDouble(json['unitPrice']),
       description: json['description'],
     );
   }

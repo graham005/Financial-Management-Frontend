@@ -5,7 +5,7 @@ class StudentRequirement {
   final String studentId;
   final String studentName;
   final String term;
-  final String academicYear;
+  final int academicYear;
   final String status;
   final DateTime assignedAt;
   final List<RequirementStatus> items;
@@ -22,19 +22,54 @@ class StudentRequirement {
   });
 
   factory StudentRequirement.fromJson(Map<String, dynamic> json) {
+    int _toInt(dynamic v) {
+      if (v is int) return v;
+      if (v is double) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? 0;
+      return 0;
+    }
+
+    List<RequirementStatus> _parseItems(dynamic raw) {
+      if (raw == null) return <RequirementStatus>[];
+      if (raw is List) {
+        return raw
+            .where((e) => e != null)
+            .map((e) => RequirementStatus.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      if (raw is Map<String, dynamic>) {
+        final candidates = [
+          raw['requirementItems'],
+          raw['items'],
+          raw['data'],
+          raw['results'],
+          raw['value'],
+          raw['\$values'],
+        ].where((v) => v is List).cast<List>().toList();
+        if (candidates.isNotEmpty) {
+          return candidates.first
+              .map((e) => RequirementStatus.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      return <RequirementStatus>[];
+    }
+
+    // Prefer the backend key `requirementItems` from the sample
+    final rawItems = json['requirementItems'] ??
+        json['items'] ??
+        json['itemStatuses'] ??
+        json['statuses'];
+
     return StudentRequirement(
-      id: json['id'] ?? '',
-      studentId: json['studentId'] ?? '',
-      studentName: json['studentName'] ?? '',
-      term: json['term'] ?? '',
-      academicYear: json['academicYear'] ?? '',
-      status: json['status'] ?? '',
-      assignedAt: DateTime.parse(json['assignedAt']),
-      items: json['items'] != null
-          ? (json['items'] as List)
-              .map((item) => RequirementStatus.fromJson(item))
-              .toList()
-          : [],
+      id: (json['id'] ?? '').toString(),
+      studentId: (json['studentId'] ?? '').toString(),
+      studentName: (json['studentName'] ?? '').toString(),
+      term: (json['term'] ?? '').toString(),
+      academicYear: _toInt(json['academicYear']),
+      status: (json['status'] ?? '').toString(),
+      assignedAt: DateTime.tryParse((json['assignedAt'] ?? '').toString()) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      items: _parseItems(rawItems),
     );
   }
 
