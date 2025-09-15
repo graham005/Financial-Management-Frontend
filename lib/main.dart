@@ -3,10 +3,12 @@ import 'package:finance_management_frontend/Pages/Admin/grades_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_list_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/student_requirements_screen.dart';
 import 'Pages/Accountant/fee_structure_display_screen.dart';
+import 'Pages/Accountant/record_item_transaction_screen.dart';
 import 'Pages/Accountant/students_display_screen.dart';
 import 'Pages/Admin/fee_structure_screen.dart';
 import 'Pages/Admin/other_fees_screen.dart';
 import 'Pages/Admin/requirement/requirement_list_details_screen.dart';
+import 'Pages/Admin/requirement/student_requirement_details_screen.dart';
 import 'Pages/Admin/student_onboarding_screen.dart';
 import 'Pages/Admin/user_management_screen.dart';
 import '../Pages/Admin/admin_dashboard_screen.dart';
@@ -96,10 +98,20 @@ class MyApp extends ConsumerWidget {
               currentRoute: '/student-requirement',
               child: StudentRequirementsScreen(),
             ),
-        // "/record-item-transaction": (context) => const SideNavLayout(
-        //       currentRoute: '/record-item-transaction',
-        //       child: RecordTransactionScreen(),
-        //     ),
+        "/student-requirement-details": (context) {
+          final studentRequirementId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          return SideNavLayout(
+            currentRoute: '/student-requirement-details',
+            child: StudentRequirementDetailsScreen(studentRequirementId: studentRequirementId),
+          );
+        },
+        "/record-transaction": (context) {
+          final studentRequirementId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          return SideNavLayout(
+            currentRoute: '/record-transaction',
+            child: RecordTransactionScreen(studentRequirementId: studentRequirementId),
+          );
+        },
       },
     );
   }
