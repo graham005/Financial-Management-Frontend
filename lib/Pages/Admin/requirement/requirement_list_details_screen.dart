@@ -89,7 +89,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: requirementList.status == 'ACTIVE' 
+                  color: requirementList.status == 'Active' 
                       ? Colors.green.withOpacity(0.1)
                       : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -97,7 +97,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                 child: Text(
                   requirementList.status,
                   style: TextStyle(
-                    color: requirementList.status == 'ACTIVE' 
+                    color: requirementList.status == 'Active' 
                         ? Colors.green
                         : Colors.grey,
                     fontWeight: FontWeight.bold,
@@ -438,6 +438,8 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                   if (context.mounted) {
                     Navigator.pop(context);
                     ref.refresh(requirementListDetailsProvider(requirementListId));
+                    // Also refresh the lists so itemCount updates
+                    await ref.read(requirementListProvider.notifier).loadRequirementLists();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Item added successfully')),
                     );
@@ -594,6 +596,8 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                   if (context.mounted) {
                     Navigator.pop(context);
                     ref.refresh(requirementListDetailsProvider(requirementListId));
+                    // Refresh lists to update itemCount in cards
+                    await ref.read(requirementListProvider.notifier).loadRequirementLists();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Item updated successfully')),
                     );
@@ -619,17 +623,16 @@ class RequirementListDetailsScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
+        title: const Text('Confirm Deletion'),
         content: const Text('Are you sure you want to delete this item?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -640,6 +643,8 @@ class RequirementListDetailsScreen extends ConsumerWidget {
         await ref.read(itemLedgerServiceProvider).deleteRequirementItem(itemId);
         if (context.mounted) {
           ref.refresh(requirementListDetailsProvider(requirementListId));
+          // Refresh lists to update itemCount in cards
+          await ref.read(requirementListProvider.notifier).loadRequirementLists();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Item deleted successfully')),
           );

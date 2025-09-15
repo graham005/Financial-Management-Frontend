@@ -105,7 +105,7 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
                 border: OutlineInputBorder(),
               ),
               value: _selectedStatus,
-              items: ['ACTIVE', 'ARCHIVED']
+              items: ['Active', 'Archived']
                   .map((status) => DropdownMenuItem(value: status, child: Text(status)))
                   .toList(),
               onChanged: (value) {
@@ -195,7 +195,7 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
           },
           itemBuilder: (context) => [
             const PopupMenuItem(value: 'view', child: Text('View Details')),
-            if (requirementList.status == 'ACTIVE')
+            if (requirementList.status == 'Active')
               const PopupMenuItem(value: 'archive', child: Text('Archive')),
           ],
         ),

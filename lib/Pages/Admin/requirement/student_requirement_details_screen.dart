@@ -351,11 +351,23 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
     }
   }
 
-  void _recordTransaction(BuildContext context, String studentRequirementId) {
-    Navigator.pushNamed(
+  void _recordTransaction(BuildContext context, String studentRequirementId) async {
+    final result = await Navigator.pushNamed(
       context,
       '/record-transaction',
       arguments: studentRequirementId,
     );
+
+    if (result == true) {
+      // Force reload so outstanding/received values update
+      // ignore: use_build_context_synchronously
+      final container = ProviderScope.containerOf(context);
+      container.refresh(studentRequirementDetailsProvider(studentRequirementId));
+      // Optional feedback
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transaction recorded. Data refreshed')),
+      );
+    }
   }
 }

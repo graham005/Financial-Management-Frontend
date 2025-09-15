@@ -15,7 +15,7 @@ class StudentRequirementsScreen extends ConsumerStatefulWidget {
 class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsScreen> {
   String? _selectedStudentId;
   String? _selectedTerm;
-  String? _selectedYear;
+  int? _selectedYear;
   String? _selectedStatus;
   final _searchController = TextEditingController();
 
@@ -23,7 +23,9 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load both student requirements and requirement lists
       _loadStudentRequirements();
+      _loadRequirementLists();
     });
   }
 
@@ -42,10 +44,23 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
     );
   }
 
+  // Add method to load requirement lists
+  void _loadRequirementLists() {
+    ref.read(requirementListProvider.notifier).loadRequirementLists();
+  }
+
+  // Add debug dialog to show all requirement lists
+  void _showRequirementListsDebug() {
+    showDialog(
+      context: context,
+      builder: (context) => _RequirementListsDebugDialog(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(studentRequirementProvider);
-    final students = ref.watch(studentProvider);
+    final studentsAsync = ref.watch(studentProvider);
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
@@ -54,23 +69,43 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
+          // Add debug button
+          IconButton(
+            onPressed: () => _showRequirementListsDebug(),
+            icon: const Icon(Icons.bug_report),
+            tooltip: 'Debug: Show Requirement Lists',
+          ),
           IconButton(
             onPressed: () => _showAssignRequirementDialog(),
             icon: const Icon(Icons.assignment_add),
             tooltip: 'Assign Requirement',
           ),
+          IconButton(
+            onPressed: () => _showBulkAssignDialog(),
+            icon: const Icon(Icons.assignment_ind),
+            tooltip: 'Bulk Assign',
+          ),
+          // Add refresh button
+          IconButton(
+            onPressed: () {
+              _loadStudentRequirements();
+              _loadRequirementLists();
+            },
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+          ),
         ],
       ),
       body: Column(
         children: [
-          _buildFilterSection(students),
+          _buildFilterSection(studentsAsync),
           Expanded(child: _buildStudentRequirementsView(state)),
         ],
       ),
     );
   }
 
-  Widget _buildFilterSection(studentsAsync) {
+  Widget _buildFilterSection(AsyncValue<List<Student>> studentsAsync) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,
@@ -80,19 +115,27 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
             children: [
               Expanded(
                 flex: 2,
-                child: TextFormField(
-                  controller: _searchController,
-                  decoration: const InputDecoration(
-                    labelText: 'Search Student',
-                    hintText: 'Enter student name',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.search),
+                child: studentsAsync.when(
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, _) => Text('Error: $error'),
+                  data: (students) => DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Student',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    value: _selectedStudentId,
+                    items: students
+                        .map((s) => DropdownMenuItem(
+                              value: s.id,
+                              child: Text(s.displayName),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() => _selectedStudentId = value);
+                      _loadStudentRequirements();
+                    },
                   ),
-                  onChanged: (value) {
-                    // Implement debounced search
-                    setState(() => _selectedStudentId = value.isEmpty ? null : value);
-                    _loadStudentRequirements();
-                  },
                 ),
               ),
               const SizedBox(width: 16),
@@ -103,9 +146,11 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                     border: OutlineInputBorder(),
                   ),
                   value: _selectedTerm,
-                  items: ['Term 1', 'Term 2', 'Term 3']
-                      .map((term) => DropdownMenuItem(value: term, child: Text(term)))
-                      .toList(),
+                  items: const [
+                    DropdownMenuItem(value: 'Term 1', child: Text('Term 1')),
+                    DropdownMenuItem(value: 'Term 2', child: Text('Term 2')),
+                    DropdownMenuItem(value: 'Term 3', child: Text('Term 3')),
+                  ],
                   onChanged: (value) {
                     setState(() => _selectedTerm = value);
                     _loadStudentRequirements();
@@ -123,12 +168,14 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                     labelText: 'Academic Year',
                     border: OutlineInputBorder(),
                   ),
-                  value: _selectedYear,
-                  items: ['2023', '2024', '2025']
-                      .map((year) => DropdownMenuItem(value: year, child: Text(year)))
-                      .toList(),
+                  value: _selectedYear?.toString(),
+                  items: const [
+                    DropdownMenuItem(value: '2023', child: Text('2023')),
+                    DropdownMenuItem(value: '2024', child: Text('2024')),
+                    DropdownMenuItem(value: '2025', child: Text('2025')),
+                  ],
                   onChanged: (value) {
-                    setState(() => _selectedYear = value);
+                    setState(() => _selectedYear = value != null ? int.tryParse(value) : null);
                     _loadStudentRequirements();
                   },
                 ),
@@ -141,9 +188,11 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                     border: OutlineInputBorder(),
                   ),
                   value: _selectedStatus,
-                  items: ['PENDING', 'PARTIAL', 'COMPLETED']
-                      .map((status) => DropdownMenuItem(value: status, child: Text(status)))
-                      .toList(),
+                  items: const [
+                    DropdownMenuItem(value: 'PENDING', child: Text('Pending')),
+                    DropdownMenuItem(value: 'PARTIAL', child: Text('Partial')),
+                    DropdownMenuItem(value: 'COMPLETED', child: Text('Completed')),
+                  ],
                   onChanged: (value) {
                     setState(() => _selectedStatus = value);
                     _loadStudentRequirements();
@@ -158,7 +207,6 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                     _selectedTerm = null;
                     _selectedYear = null;
                     _selectedStatus = null;
-                    _searchController.clear();
                   });
                   _loadStudentRequirements();
                 },
@@ -204,9 +252,19 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
             const Text('No student requirements found'),
             const Text('Assign requirements to students to get started'),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _showAssignRequirementDialog,
-              child: const Text('Assign Requirement'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _showAssignRequirementDialog,
+                  child: const Text('Assign to Student'),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: _showBulkAssignDialog,
+                  child: const Text('Bulk Assign'),
+                ),
+              ],
             ),
           ],
         ),
@@ -241,15 +299,10 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                       children: [
                         Text(
                           requirement.studentName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          '${requirement.term} ${requirement.academicYear}',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
+                        const SizedBox(height: 4),
+                        Text('${requirement.term} ${requirement.academicYear}'),
                       ],
                     ),
                   ),
@@ -276,17 +329,14 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                     ),
                   ),
                   SizedBox(
-                    width: 100,
+                    width: 120,
                     child: ElevatedButton(
                       onPressed: () => _recordTransaction(requirement.id),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        foregroundColor: Colors.white,
                       ),
-                      child: const Text(
-                        'Record',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
+                      child: const Text('Record'),
                     ),
                   ),
                 ],
@@ -391,89 +441,29 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
   }
 
   void _showAssignRequirementDialog() {
-    final studentIdController = TextEditingController();
-    final requirementListIdController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Assign Requirement'),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: studentIdController,
-                  decoration: const InputDecoration(
-                    labelText: 'Student ID *',
-                    hintText: 'Enter student ID',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Student ID is required';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                Consumer(
-                  builder: (context, ref, child) {
-                    final requirementLists = ref.watch(requirementListProvider);
-                    
-                    return DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Requirement List *',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.list_alt),
-                      ),
-                      items: requirementLists.lists
-                          .where((list) => list.status == 'ACTIVE')
-                          .map((list) => DropdownMenuItem(
-                                value: list.id,
-                                child: Text('${list.term} ${list.academicYear}'),
-                              ))
-                          .toList(),
-                      onChanged: (value) => requirementListIdController.text = value ?? '',
-                      validator: (value) => value == null ? 'Please select a requirement list' : null,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (formKey.currentState!.validate()) {
-                final success = await ref.read(studentRequirementProvider.notifier).assignRequirement(
-                  studentId: studentIdController.text.trim(),
-                  requirementListId: requirementListIdController.text,
-                );
-                
-                if (success && mounted) {
-                  Navigator.pop(context);
-                  _loadStudentRequirements();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Requirement assigned successfully')),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Assign', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+      builder: (context) => _AssignRequirementDialog(
+        onAssigned: () {
+          _loadStudentRequirements();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Requirement assigned successfully')),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showBulkAssignDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => _BulkAssignDialog(
+        onAssigned: () {
+          _loadStudentRequirements();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Requirements assigned successfully')),
+          );
+        },
       ),
     );
   }
@@ -486,11 +476,838 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
     );
   }
 
-  void _recordTransaction(String requirementId) {
-    Navigator.pushNamed(
+  void _recordTransaction(String requirementId) async {
+    final result = await Navigator.pushNamed(
       context,
       '/record-transaction',
       arguments: requirementId,
+    );
+    if (result == true && mounted) {
+      // Refresh the list so cards reflect new outstanding/received
+      await ref.read(studentRequirementProvider.notifier).loadStudentRequirements(
+        studentId: _selectedStudentId,
+        term: _selectedTerm,
+        academicYear: _selectedYear,
+        status: _selectedStatus,
+      );
+    }
+  }
+}
+
+// Single Assignment Dialog
+class _AssignRequirementDialog extends ConsumerStatefulWidget {
+  final VoidCallback onAssigned;
+
+  const _AssignRequirementDialog({required this.onAssigned});
+
+  @override
+  ConsumerState<_AssignRequirementDialog> createState() => _AssignRequirementDialogState();
+}
+
+class _AssignRequirementDialogState extends ConsumerState<_AssignRequirementDialog> {
+  final _formKey = GlobalKey<FormState>();
+  String? _selectedStudentId;
+  String? _selectedRequirementListId;
+  List<String> _selectedItemIds = [];
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final studentsAsync = ref.watch(studentProvider);
+    final requirementListsState = ref.watch(requirementListProvider);
+    final selectedRequirementListAsync = _selectedRequirementListId != null
+        ? ref.watch(requirementListDetailsProvider(_selectedRequirementListId!))
+        : null;
+
+    return AlertDialog(
+      title: const Text('Assign Requirement to Student'),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.8,
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Student Selection
+                studentsAsync.when(
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, _) => Text('Error loading students: $error'),
+                  data: (students) => DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Select Student *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    value: _selectedStudentId,
+                    items: students.map((student) => DropdownMenuItem(
+                      value: student.id,
+                      child: Text(student.displayName),
+                    )).toList(),
+                    onChanged: (value) => setState(() => _selectedStudentId = value),
+                    validator: (value) => value == null ? 'Please select a student' : null,
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Requirement List Selection - Fixed to handle loading and error states
+                if (requirementListsState.isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (requirementListsState.error != null)
+                  Column(
+                    children: [
+                      Text('Error loading requirement lists: ${requirementListsState.error}'),
+                      ElevatedButton(
+                        onPressed: () => ref.read(requirementListProvider.notifier).loadRequirementLists(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  )
+                else
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(
+                      labelText: 'Select Requirement List *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.list_alt),
+                    ),
+                    value: _selectedRequirementListId,
+                    items: requirementListsState.lists
+                        .where((list) => list.status == 'Active')
+                        .map((list) => DropdownMenuItem(
+                              value: list.id,
+                              child: Text('${list.term} ${list.academicYear}'),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedRequirementListId = value;
+                        _selectedItemIds.clear();
+                      });
+                    },
+                    validator: (value) => value == null ? 'Please select a requirement list' : null,
+                  ),
+                
+                const SizedBox(height: 16),
+                
+                // Items Selection
+                if (selectedRequirementListAsync != null)
+                  selectedRequirementListAsync.when(
+                    loading: () => const CircularProgressIndicator(),
+                    error: (error, _) => Text('Error loading items: $error'),
+                    data: (requirementList) => _buildItemsSelection(requirementList),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _assignRequirement,
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Assign', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemsSelection(requirementList) {
+    final items = requirementList.items ?? [];
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text(
+              'Select Items:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  if (_selectedItemIds.length == items.length) {
+                    _selectedItemIds.clear();
+                  } else {
+                    _selectedItemIds = items.map((item) => item.id).toList();
+                  }
+                });
+              },
+              child: Text(_selectedItemIds.length == items.length ? 'Deselect All' : 'Select All'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              final isSelected = _selectedItemIds.contains(item.id);
+              
+              return CheckboxListTile(
+                title: Text(item.itemName),
+                subtitle: Text('${item.requiredQuantity} ${item.unit} - ₦${item.unitPrice.toStringAsFixed(2)} each'),
+                value: isSelected,
+                onChanged: (bool? value) {
+                  setState(() {
+                    if (value == true) {
+                      _selectedItemIds.add(item.id);
+                    } else {
+                      _selectedItemIds.remove(item.id);
+                    }
+                  });
+                },
+              );
+            },
+          ),
+        ),
+        if (_selectedItemIds.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'Please select at least one item',
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _assignRequirement() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    if (_selectedItemIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one item')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await ref.read(studentRequirementProvider.notifier).assignRequirement(
+        studentId: _selectedStudentId!,
+        requirementListId: _selectedRequirementListId!,
+        selectedItemIds: _selectedItemIds,
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onAssigned();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+}
+
+// Bulk Assignment Dialog
+class _BulkAssignDialog extends ConsumerStatefulWidget {
+  final VoidCallback onAssigned;
+
+  const _BulkAssignDialog({required this.onAssigned});
+
+  @override
+  ConsumerState<_BulkAssignDialog> createState() => _BulkAssignDialogState();
+}
+
+class _BulkAssignDialogState extends ConsumerState<_BulkAssignDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _searchController = TextEditingController();
+  List<String> _selectedStudentIds = [];
+  String? _selectedRequirementListId;
+  List<String> _selectedItemIds = [];
+  bool _isLoading = false;
+  String _searchQuery = '';
+
+  @override
+  dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final studentsAsync = ref.watch(studentProvider);
+    final requirementListsState = ref.watch(requirementListProvider);
+    final selectedRequirementListAsync = _selectedRequirementListId != null
+        ? ref.watch(requirementListDetailsProvider(_selectedRequirementListId!))
+        : null;
+
+    return AlertDialog(
+      title: const Text('Bulk Assign Requirements'),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.8,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Requirement List Selection - Fixed to handle loading and error states
+              if (requirementListsState.isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (requirementListsState.error != null)
+                Column(
+                  children: [
+                    Text('Error loading requirement lists: ${requirementListsState.error}'),
+                    ElevatedButton(
+                      onPressed: () => ref.read(requirementListProvider.notifier).loadRequirementLists(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                )
+              else
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    labelText: 'Select Requirement List *',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.list_alt),
+                  ),
+                  value: _selectedRequirementListId,
+                  items: requirementListsState.lists
+                      .where((list) => list.status == 'Active')
+                      .map((list) => DropdownMenuItem(
+                            value: list.id,
+                            child: Text('${list.term} ${list.academicYear}'),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRequirementListId = value;
+                      _selectedItemIds.clear();
+                    });
+                  },
+                  validator: (value) => value == null ? 'Please select a requirement list' : null,
+                ),
+              
+              const SizedBox(height: 16),
+              
+              // Items Selection
+              if (selectedRequirementListAsync != null)
+                selectedRequirementListAsync.when(
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, _) => Text('Error loading items: $error'),
+                  data: (requirementList) => _buildItemsSelection(requirementList),
+                ),
+              
+              const SizedBox(height: 16),
+              
+              // Student Search and Selection
+              Expanded(
+                child: studentsAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, _) => Center(child: Text('Error: $error')),
+                  data: (students) => _buildStudentSelection(students),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _bulkAssignRequirements,
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : Text(
+                  'Assign to ${_selectedStudentIds.length} students',
+                  style: const TextStyle(color: Colors.white),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildItemsSelection(requirementList) {
+    final items = requirementList.items ?? [];
+    
+    return SizedBox(
+      height: 150,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Select Items:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    if (_selectedItemIds.length == items.length) {
+                      _selectedItemIds.clear();
+                    } else {
+                      _selectedItemIds = items.map((item) => item.id).toList();
+                    }
+                  });
+                },
+                child: Text(_selectedItemIds.length == items.length ? 'Deselect All' : 'Select All'),
+              ),
+            ],
+          ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  final isSelected = _selectedItemIds.contains(item.id);
+                  
+                  return CheckboxListTile(
+                    dense: true,
+                    title: Text(item.itemName, style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(
+                      '${item.requiredQuantity} ${item.unit} - ₦${item.unitPrice.toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    value: isSelected,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          _selectedItemIds.add(item.id);
+                        } else {
+                          _selectedItemIds.remove(item.id);
+                        }
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudentSelection(List<Student> allStudents) {
+    final filteredStudents = _searchQuery.isEmpty
+        ? allStudents
+        : allStudents.where((student) {
+            final query = _searchQuery.toLowerCase();
+            return student.fullName.toLowerCase().contains(query) ||
+                   student.admissionNumber.toLowerCase().contains(query) ||
+                   student.gradeName.toLowerCase().contains(query);
+          }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search field
+        TextFormField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            labelText: 'Search Students',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.search),
+          ),
+          onChanged: (value) => setState(() => _searchQuery = value),
+        ),
+        
+        const SizedBox(height: 8),
+        
+        // Select all button
+        Row(
+          children: [
+            Text(
+              'Students (${_selectedStudentIds.length}/${filteredStudents.length} selected):',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  if (_selectedStudentIds.length == filteredStudents.length) {
+                    _selectedStudentIds.clear();
+                  } else {
+                    _selectedStudentIds = filteredStudents.map((s) => s.id).toList();
+                  }
+                });
+              },
+              child: Text(
+                _selectedStudentIds.length == filteredStudents.length ? 'Deselect All' : 'Select All',
+              ),
+            ),
+          ],
+        ),
+        
+        // Students list
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: ListView.builder(
+              itemCount: filteredStudents.length,
+              itemBuilder: (context, index) {
+                final student = filteredStudents[index];
+                final isSelected = _selectedStudentIds.contains(student.id);
+                
+                return CheckboxListTile(
+                  title: Text(student.fullName),
+                  subtitle: Text('${student.admissionNumber} - ${student.gradeName}'),
+                  value: isSelected,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value == true) {
+                        _selectedStudentIds.add(student.id);
+                      } else {
+                        _selectedStudentIds.remove(student.id);
+                      }
+                    });
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _bulkAssignRequirements() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    if (_selectedItemIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one item')),
+      );
+      return;
+    }
+
+    if (_selectedStudentIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one student')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await ref.read(studentRequirementProvider.notifier).bulkAssignStudents(
+        studentIds: _selectedStudentIds,
+        requirementListId: _selectedRequirementListId!,
+        selectedItemIds: _selectedItemIds,
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onAssigned();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+}
+
+// Debug Dialog to show all requirement lists
+class _RequirementListsDebugDialog extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final requirementListsState = ref.watch(requirementListProvider);
+
+    return AlertDialog(
+      title: const Text('Debug: Requirement Lists Data'),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.8,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // State Information
+              Card(
+                color: Colors.blue.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Provider State:',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Text('Is Loading: ${requirementListsState.isLoading}'),
+                      Text('Error: ${requirementListsState.error ?? "None"}'),
+                      Text('Lists Count: ${requirementListsState.lists.length}'),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Loading State
+              if (requirementListsState.isLoading)
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 16),
+                        Text('Loading requirement lists...'),
+                      ],
+                    ),
+                  ),
+                ),
+              
+              // Error State
+              if (requirementListsState.error != null)
+                Card(
+                  color: Colors.red.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Error:',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          requirementListsState.error!,
+                          style: TextStyle(color: Colors.red.shade700),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => ref.read(requirementListProvider.notifier).loadRequirementLists(),
+                          child: const Text('Retry Loading'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              
+              // Requirement Lists Data
+              if (requirementListsState.lists.isEmpty && !requirementListsState.isLoading)
+                Card(
+                  color: Colors.orange.shade50,
+                  child: const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Icon(Icons.info, color: Colors.orange, size: 48),
+                        SizedBox(height: 16),
+                        Text(
+                          'No Requirement Lists Found',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text('The provider loaded successfully but returned no requirement lists.'),
+                        Text('This could mean:'),
+                        Text('• No requirement lists exist in the database'),
+                        Text('• All lists are archived/inactive'),
+                        Text('• API filters are excluding all results'),
+                      ],
+                    ),
+                  ),
+                ),
+              
+              // Display actual requirement lists
+              ...requirementListsState.lists.asMap().entries.map((entry) {
+                final index = entry.key;
+                final list = entry.value;
+                
+                return Card(
+                  color: Colors.green.shade50,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Requirement List Header
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Requirement List #${index + 1}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                              const SizedBox(height: 8),
+                              Text('ID: ${list.id}'),
+                              Text('Term: ${list.term}'),
+                              Text('Academic Year: ${list.academicYear}'),
+                              Text('Status: ${list.status}'),
+                              Text('Created At: ${list.createdAt}'),
+                              Text('Created By: ${list.createdBy}'),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Items
+                        Text(
+                          'Items (${list.items?.length ?? 0}):',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        
+                        if (list.items == null || list.items!.isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'No items in this requirement list',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                          )
+                        else
+                          ...list.items!.asMap().entries.map((itemEntry) {
+                            final itemIndex = itemEntry.key;
+                            final item = itemEntry.value;
+                            
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Item #${itemIndex + 1}: ${item.itemName}',
+                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text('ID: ${item.id}'),
+                                  Text('Required Quantity: ${item.requiredQuantity} ${item.unit}'),
+                                  Text('Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}'),
+                                  if (item.description != null && item.description!.isNotEmpty)
+                                    Text('Description: ${item.description}'),
+                                ],
+                              ),
+                            );
+                          }),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              
+              // Refresh Button
+              const SizedBox(height: 16),
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => ref.read(requirementListProvider.notifier).loadRequirementLists(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Refresh Data'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            // Copy debug info to clipboard
+            final debugInfo = '''
+Provider State Debug Info:
+- Is Loading: ${requirementListsState.isLoading}
+- Error: ${requirementListsState.error ?? "None"}
+- Lists Count: ${requirementListsState.lists.length}
+
+Requirement Lists:
+${requirementListsState.lists.asMap().entries.map((entry) {
+              final index = entry.key;
+              final list = entry.value;
+              
+              return '''
+- Requirement List #${index + 1}:
+  ID: ${list.id}
+  Term: ${list.term}
+  Academic Year: ${list.academicYear}
+  Status: ${list.status}
+  Created At: ${list.createdAt}
+  Created By: ${list.createdBy}
+  Items Count: ${list.items?.length ?? 0}
+  ''';
+            }).join()}
+            ''';
+
+            // TODO: Implement clipboard copy functionality
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Debug info copied to clipboard')),
+            );
+          },
+          child: const Text('Copy Debug Info'),
+        ),
+      ],
     );
   }
 }
