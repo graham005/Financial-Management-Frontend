@@ -17,7 +17,6 @@ class StudentOnboardingScreen extends ConsumerStatefulWidget {
 class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedGradeFilter = "All Grades";
-  List<Student> _filteredStudents = [];
 
   @override
   void initState() {
@@ -34,34 +33,26 @@ class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScree
     super.dispose();
   }
 
-  void _filterStudents(List<Student> students) {
-    setState(() {
-      _filteredStudents = students.where((student) {
-        final matchesSearch = student.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-                             student.admissionNumber.toLowerCase().contains(_searchController.text.toLowerCase());
-        final matchesGrade = _selectedGradeFilter == "All Grades" || student.gradeName == _selectedGradeFilter;
-        return matchesSearch && matchesGrade;
-      }).toList();
-    });
+  List<Student> _getFilteredStudents(List<Student> students) {
+    return students.where((student) {
+      final matchesSearch = student.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
+                           student.admissionNumber.toLowerCase().contains(_searchController.text.toLowerCase());
+      final matchesGrade = _selectedGradeFilter == "All Grades" || student.gradeName == _selectedGradeFilter;
+      return matchesSearch && matchesGrade;
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final students = ref.watch(studentProvider);
-    final gradesAsync = ref.watch(gradeProvider); // <-- Add this line
+    final studentsAsync = ref.watch(studentProvider);
+    final gradesAsync = ref.watch(gradeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Update filtered students when the main list changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (students.isNotEmpty) {
-        _filterStudents(students);
-      }
-    });
 
     return Scaffold(
       appBar: AppBar(
         title: Text("Student Onboarding", style: GoogleFonts.underdog(fontWeight: FontWeight.w800)),
         backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
       ),
       body: Padding(
@@ -76,7 +67,7 @@ class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScree
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha:0.1),
+                    color: Colors.black.withAlpha((0.1 * 255).toInt()),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -90,12 +81,12 @@ class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScree
                         color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha:0.3),
+                          color: AppColors.primary.withAlpha((0.3 * 255).toInt()),
                         ),
                       ),
                       child: TextField(
                         controller: _searchController,
-                        onChanged: (value) => _filterStudents(students),
+                        onChanged: (value) => setState(() {}), // Trigger rebuild on search
                         style: GoogleFonts.underdog(),
                         decoration: InputDecoration(
                           hintText: "Search students...",
@@ -124,7 +115,7 @@ class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScree
                           color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: AppColors.primary.withValues(alpha:0.3),
+                            color: AppColors.primary.withOpacity(0.3),
                           ),
                         ),
                         child: DropdownButton<String>(
@@ -143,7 +134,6 @@ class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScree
                             setState(() {
                               _selectedGradeFilter = value!;
                             });
-                            _filterStudents(students);
                           },
                         ),
                       );
@@ -176,115 +166,179 @@ class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScree
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha:0.1),
+                      color: Colors.black.withOpacity(0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: _filteredStudents.isEmpty
-                    ? Center(
+                child: studentsAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error,
+                          size: 64,
+                          color: AppColors.error.withAlpha((0.5 * 255).toInt()),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Error loading students",
+                          style: GoogleFonts.underdog(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          error.toString(),
+                          style: GoogleFonts.underdog(
+                            fontSize: 14,
+                            color: isDark ? Colors.white54 : Colors.black45,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => ref.read(studentProvider.notifier).fetchStudents(),
+                          child: Text("Retry", style: GoogleFonts.underdog()),
+                        ),
+                      ],
+                    ),
+                  ),
+                  data: (students) {
+                    final filteredStudents = _getFilteredStudents(students);
+                    
+                    if (filteredStudents.isEmpty) {
+                      return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
                               Icons.school,
                               size: 64,
-                              color: AppColors.primary.withValues(alpha:0.5),
+                              color: AppColors.primary.withAlpha((0.5 * 255).toInt()),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              "No students found",
+                              students.isEmpty ? "No students found" : "No students match your search",
                               style: GoogleFonts.underdog(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                                 color: isDark ? Colors.white70 : Colors.black54,
                               ),
                             ),
+                            if (students.isEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                "Add your first student to get started",
+                                style: GoogleFonts.underdog(
+                                  fontSize: 14,
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () => _showStudentForm(context, ref),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                ),
+                                icon: const Icon(Icons.add),
+                                label: Text("Add Student", style: GoogleFonts.underdog()),
+                              ),
+                            ],
                           ],
                         ),
-                      )
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: DataTable(
-                          headingRowColor: WidgetStateProperty.all(
-                            AppColors.primary.withValues(alpha:0.1),
-                          ),
-                          columns: [
-                            DataColumn(label: Text("Admission No.", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text("Name", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text("Grade", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text("Parent Name", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text("Parent Phone", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                            DataColumn(label: Text("Actions", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                          ],
-                          rows: _filteredStudents.map((student) {
-                            return DataRow(
-                              cells: [
-                                DataCell(SelectableText(student.admissionNumber, style: GoogleFonts.underdog())),
-                                DataCell(SelectableText(student.name, style: GoogleFonts.underdog())),
-                                DataCell(
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha:0.2),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: AppColors.primary.withValues(alpha:0.3),
-                                      ),
+                      );
+                    }
+                    
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: DataTable(
+                        headingRowColor: WidgetStateProperty.all(
+                          AppColors.primary.withAlpha((0.1 * 255).toInt()),
+                        ),
+                        columns: [
+                          DataColumn(label: Text("Admission No.", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                          DataColumn(label: Text("Name", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                          DataColumn(label: Text("Grade", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                          DataColumn(label: Text("Parent Name", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                          DataColumn(label: Text("Parent Phone", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                          DataColumn(label: Text("Actions", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                        ],
+                        rows: filteredStudents.map((student) {
+                          return DataRow(
+                            cells: [
+                              DataCell(SelectableText(student.admissionNumber, style: GoogleFonts.underdog())),
+                              DataCell(SelectableText(student.name, style: GoogleFonts.underdog())),
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withAlpha((0.2 * 255).toInt()),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.primary.withOpacity(0.3),
                                     ),
-                                    child: Text(
-                                      student.gradeName,
-                                      style: GoogleFonts.underdog(
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.primary,
-                                      ),
+                                  ),
+                                  child: Text(
+                                    student.gradeName,
+                                    style: GoogleFonts.underdog(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ),
-                                DataCell(SelectableText(student.parentName, style: GoogleFonts.underdog())),
-                                DataCell(SelectableText(student.parentPhoneNumber, style: GoogleFonts.underdog())),
-                                DataCell(
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        onPressed: () => _showStudentForm(context, ref, student: student),
-                                        icon: Icon(Icons.edit, color: AppColors.primary),
-                                        tooltip: "Edit Student",
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete, color: AppColors.error),
-                                        tooltip: "Delete Student",
-                                        onPressed: () async {
-                                          final shouldDelete = await showConfirmationDialog(
-                                            context,
-                                            "Are you sure you want to delete this student?",
-                                          );
-                                          if (shouldDelete) {
-                                            await ref.read(studentProvider.notifier).deleteStudent(student.id);
-                                            if (mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    "Student deleted successfully",
-                                                    style: GoogleFonts.underdog(),
-                                                  ),
-                                                  backgroundColor: AppColors.success,
+                              ),
+                              DataCell(SelectableText(student.parentName, style: GoogleFonts.underdog())),
+                              DataCell(SelectableText(student.parentPhoneNumber, style: GoogleFonts.underdog())),
+                              DataCell(
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () => _showStudentForm(context, ref, student: student),
+                                      icon: Icon(Icons.edit, color: AppColors.primary),
+                                      tooltip: "Edit Student",
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete, color: AppColors.error),
+                                      tooltip: "Delete Student",
+                                      onPressed: () async {
+                                        final shouldDelete = await showConfirmationDialog(
+                                          context,
+                                          "Are you sure you want to delete this student?",
+                                        );
+                                        if (shouldDelete) {
+                                          await ref.read(studentProvider.notifier).deleteStudent(student.id);
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  "Student deleted successfully",
+                                                  style: GoogleFonts.underdog(),
                                                 ),
-                                              );
-                                            }
+                                                backgroundColor: AppColors.success,
+                                              ),
+                                            );
                                           }
-                                        },
-                                      ),
-                                    ],
-                                  ),
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      )
+                    );
+                  },
+                ),
               ),
             ),
           ],

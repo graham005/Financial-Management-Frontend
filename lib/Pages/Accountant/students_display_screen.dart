@@ -15,7 +15,6 @@ class StudentsDisplayScreen extends ConsumerStatefulWidget {
 class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedGradeFilter = "All Grades";
-  List<Student> _filteredStudents = [];
 
   @override
   void initState() {
@@ -32,42 +31,33 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
     super.dispose();
   }
 
-  void _filterStudents(List<Student> students) {
-    setState(() {
-      _filteredStudents = students.where((student) {
-        final matchesSearch = student.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-                             student.admissionNumber.toLowerCase().contains(_searchController.text.toLowerCase());
-        final matchesGrade = _selectedGradeFilter == "All Grades" || student.gradeName == _selectedGradeFilter;
-        return matchesSearch && matchesGrade;
-      }).toList();
-    });
+  List<Student> _getFilteredStudents(List<Student> students) {
+    return students.where((student) {
+      final matchesSearch = student.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
+                           student.admissionNumber.toLowerCase().contains(_searchController.text.toLowerCase());
+      final matchesGrade = _selectedGradeFilter == "All Grades" || student.gradeName == _selectedGradeFilter;
+      return matchesSearch && matchesGrade;
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final students = ref.watch(studentProvider);
+    final studentsAsync = ref.watch(studentProvider);
     final gradesAsync = ref.watch(gradeProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Update filtered students when the main list changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (students.isNotEmpty) {
-        _filterStudents(students);
-      }
-    });
 
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900), // Optional: limit max width
+          constraints: const BoxConstraints(maxWidth: 900),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center, // Center the column content
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Header
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center, // Center the header row
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.people, size: 28, color: AppColors.primary),
                     const SizedBox(width: 12),
@@ -92,14 +82,14 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                 // Search and Filter Container - Centered
                 Center(
                   child: Container(
-                    constraints: const BoxConstraints(maxWidth: 800), // Limit search bar width
+                    constraints: const BoxConstraints(maxWidth: 800),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha:0.1),
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -113,12 +103,12 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                               color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: AppColors.primary.withValues(alpha:0.3),
+                                color: AppColors.primary.withOpacity(0.3),
                               ),
                             ),
                             child: TextField(
                               controller: _searchController,
-                              onChanged: (value) => _filterStudents(students),
+                              onChanged: (value) => setState(() {}), // Trigger rebuild
                               style: GoogleFonts.underdog(),
                               decoration: InputDecoration(
                                 hintText: "Search students...",
@@ -147,7 +137,7 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                                 color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: AppColors.primary.withValues(alpha:0.3),
+                                  color: AppColors.primary.withOpacity(0.3),
                                 ),
                               ),
                               child: DropdownButton<String>(
@@ -166,9 +156,9 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                                   setState(() {
                                     _selectedGradeFilter = value!;
                                   });
-                                  _filterStudents(students);
                                 },
-                              ));
+                              ),
+                            );
                           },
                         ),
                       ],
@@ -180,31 +170,71 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                 Expanded(
                   child: Center(
                     child: Container(
-                      constraints: const BoxConstraints(maxWidth: 1000), // Limit table width
+                      constraints: const BoxConstraints(maxWidth: 1000),
                       decoration: BoxDecoration(
                         color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha:0.1),
+                            color: Colors.black.withOpacity(0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                      child: _filteredStudents.isEmpty
-                          ? Center(
+                      child: studentsAsync.when(
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (error, stack) => Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error,
+                                size: 64,
+                                color: AppColors.error.withOpacity(0.5),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                "Error loading students",
+                                style: GoogleFonts.underdog(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white70 : Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                error.toString(),
+                                style: GoogleFonts.underdog(
+                                  fontSize: 14,
+                                  color: isDark ? Colors.white54 : Colors.black45,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => ref.read(studentProvider.notifier).fetchStudents(),
+                                child: Text("Retry", style: GoogleFonts.underdog()),
+                              ),
+                            ],
+                          ),
+                        ),
+                        data: (students) {
+                          final filteredStudents = _getFilteredStudents(students);
+                          
+                          if (filteredStudents.isEmpty) {
+                            return Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
                                     Icons.school,
                                     size: 64,
-                                    color: AppColors.primary.withValues(alpha:0.5),
+                                    color: AppColors.primary.withOpacity(0.5),
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    "No students found",
+                                    students.isEmpty ? "No students found" : "No students match your search",
                                     style: GoogleFonts.underdog(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
@@ -213,53 +243,57 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                                   ),
                                 ],
                               ),
-                            )
-                          : SingleChildScrollView(
-                              padding: const EdgeInsets.all(16),
-                              child: Center(
-                                child: DataTable(
-                                  headingRowColor: WidgetStateProperty.all(
-                                    AppColors.primary.withValues(alpha:0.1),
-                                  ),
-                                  columns: [
-                                    DataColumn(label: Text("Admission No.", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                                    DataColumn(label: Text("Name", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                                    DataColumn(label: Text("Grade", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                                    DataColumn(label: Text("Parent Name", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                                    DataColumn(label: Text("Parent Phone", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
-                                  ],
-                                  rows: _filteredStudents.map((student) {
-                                    return DataRow(
-                                      cells: [
-                                        DataCell(SelectableText(student.admissionNumber, style: GoogleFonts.underdog())),
-                                        DataCell(SelectableText(student.name, style: GoogleFonts.underdog())),
-                                        DataCell(
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.primary.withValues(alpha:0.2),
-                                              borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(
-                                                color: AppColors.primary.withValues(alpha:0.3),
-                                              ),
+                            );
+                          }
+                          
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.all(16),
+                            child: Center(
+                              child: DataTable(
+                                headingRowColor: WidgetStateProperty.all(
+                                  AppColors.primary.withOpacity(0.1),
+                                ),
+                                columns: [
+                                  DataColumn(label: Text("Admission No.", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                                  DataColumn(label: Text("Name", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                                  DataColumn(label: Text("Grade", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                                  DataColumn(label: Text("Parent Name", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                                  DataColumn(label: Text("Parent Phone", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
+                                ],
+                                rows: filteredStudents.map((student) {
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(SelectableText(student.admissionNumber, style: GoogleFonts.underdog())),
+                                      DataCell(SelectableText(student.name, style: GoogleFonts.underdog())),
+                                      DataCell(
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary.withOpacity(0.2),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(
+                                              color: AppColors.primary.withOpacity(0.3),
                                             ),
-                                            child: Text(
-                                              student.gradeName,
-                                              style: GoogleFonts.underdog(
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.primary,
-                                              ),
+                                          ),
+                                          child: Text(
+                                            student.gradeName,
+                                            style: GoogleFonts.underdog(
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.primary,
                                             ),
                                           ),
                                         ),
-                                        DataCell(SelectableText(student.parentName, style: GoogleFonts.underdog())),
-                                        DataCell(SelectableText(student.parentPhoneNumber, style: GoogleFonts.underdog())),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ),
+                                      ),
+                                      DataCell(SelectableText(student.parentName, style: GoogleFonts.underdog())),
+                                      DataCell(SelectableText(student.parentPhoneNumber, style: GoogleFonts.underdog())),
+                                    ],
+                                  );
+                                }).toList(),
                               ),
                             ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
