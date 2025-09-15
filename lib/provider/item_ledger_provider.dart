@@ -77,7 +77,17 @@ class RequirementListNotifier extends StateNotifier<RequirementListState> {
         academicYear: academicYear,
         status: status,
       );
-      state = state.copyWith(lists: lists, isLoading: false);
+
+      // Fetch details per list to populate items (so itemCount != 0)
+      final detailedLists = await Future.wait(lists.map((l) async {
+        try {
+          return await _service.getRequirementList(l.id);
+        } catch (_) {
+          return l; // fallback to lightweight list if detail fails
+        }
+      }));
+
+      state = state.copyWith(lists: detailedLists, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
@@ -113,6 +123,70 @@ class RequirementListNotifier extends StateNotifier<RequirementListState> {
       return false;
     }
   }
+
+  Future<bool> addRequirementItem({
+    required String requirementListId,
+    required String itemName,
+    required int requiredQuantity,
+    required String unit,
+    required double unitPrice,
+    String? description,
+  }) async {
+    try {
+      await _service.addRequirementItem(
+        requirementListId: requirementListId,
+        itemName: itemName,
+        requiredQuantity: requiredQuantity,
+        unit: unit,
+        unitPrice: unitPrice,
+        description: description,
+      );
+      // Refresh the requirement list to show the new item
+      await loadRequirementLists();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> updateRequirementItem({
+    required String id,
+    required String itemName,
+    required int requiredQuantity,
+    required String unit,
+    required double unitPrice,
+    String? description,
+  }) async {
+    try {
+      await _service.updateRequirementItem(
+        id: id,
+        itemName: itemName,
+        requiredQuantity: requiredQuantity,
+        unit: unit,
+        unitPrice: unitPrice,
+        description: description,
+      );
+      // Refresh the requirement list to show updated item
+      await loadRequirementLists();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> deleteRequirementItem(String id) async {
+    try {
+      await _service.deleteRequirementItem(id);
+      // Refresh the requirement list to remove deleted item
+      await loadRequirementLists();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
 }
 
 final requirementListProvider = StateNotifierProvider<RequirementListNotifier, RequirementListState>((ref) {
@@ -138,32 +212,68 @@ class StudentRequirementNotifier extends StateNotifier<StudentRequirementState> 
   Future<void> loadStudentRequirements({
     String? studentId,
     String? term,
-    String? academicYear,
+    int? academicYear,
     String? status,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final requirements = await _service.getStudentRequirements(
+      final basic = await _service.getStudentRequirements(
         studentId: studentId,
         term: term,
         academicYear: academicYear,
         status: status,
       );
-      state = state.copyWith(requirements: requirements, isLoading: false);
+
+      // Enrich with details so items are populated and totals compute correctly
+      final detailed = await Future.wait(basic.map((r) async {
+        try {
+          return await _service.getStudentRequirement(r.id);
+        } catch (_) {
+          return r; // fallback if details fail
+        }
+      }));
+
+      state = state.copyWith(requirements: detailed, isLoading: false);
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
   }
 
+  // Fixed: Added missing selectedItemIds parameter
   Future<bool> assignRequirement({
     required String studentId,
     required String requirementListId,
+    required List<String> selectedItemIds,
   }) async {
     try {
       await _service.assignRequirement(
         studentId: studentId,
         requirementListId: requirementListId,
+        selectedItemIds: selectedItemIds,
       );
+      // Refresh the student requirements list
+      await loadStudentRequirements();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  // Added: Bulk assignment method
+  Future<bool> bulkAssignStudents({
+    required List<String> studentIds,
+    required String requirementListId,
+    required List<String> selectedItemIds,
+  }) async {
+    try {
+      await _service.bulkAssignStudents(
+        studentIds: studentIds,
+        requirementListId: requirementListId,
+        selectedItemIds: selectedItemIds,
+      );
+      // Refresh the student requirements list
+      await loadStudentRequirements();
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -176,7 +286,9 @@ class StudentRequirementNotifier extends StateNotifier<StudentRequirementState> 
     required String transactionType,
     double? monetaryAmount,
     required List<TransactionItem> items,
-    String? remarks,
+    String? notes,
+    Map<String, String>? perItemNotes,
+    Map<String, double>? perItemMoney, // NEW
   }) async {
     try {
       await _service.recordTransaction(
@@ -184,8 +296,11 @@ class StudentRequirementNotifier extends StateNotifier<StudentRequirementState> 
         transactionType: transactionType,
         monetaryAmount: monetaryAmount,
         items: items,
-        remarks: remarks,
+        notes: notes,
+        perItemNotes: perItemNotes,
+        perItemMoney: perItemMoney, // NEW
       );
+      await loadStudentRequirements();
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -205,27 +320,22 @@ final studentRequirementDetailsProvider = FutureProvider.family<StudentRequireme
   return service.getStudentRequirement(id);
 });
 
-// Item Management Providers
-final addRequirementItemProvider = FutureProvider.family<RequirementItem, Map<String, dynamic>>((ref, params) async {
+// Requirement Item Provider
+final requirementItemProvider = FutureProvider.family<RequirementItem, String>((ref, id) async {
   final service = ref.watch(itemLedgerServiceProvider);
-  return service.addRequirementItem(
-    requirementListId: params['requirementListId'],
-    itemName: params['itemName'],
-    requiredQuantity: params['requiredQuantity'],
-    unit: params['unit'],
-    unitPrice: params['unitPrice'],
-    description: params['description'],
-  );
+  return service.getRequirementItem(id);
 });
 
-final updateRequirementItemProvider = FutureProvider.family<RequirementItem, Map<String, dynamic>>((ref, params) async {
+// Transaction Provider for recording individual transactions
+final recordTransactionProvider = FutureProvider.family<ItemTransaction, Map<String, dynamic>>((ref, params) async {
   final service = ref.watch(itemLedgerServiceProvider);
-  return service.updateRequirementItem(
-    id: params['id'],
-    itemName: params['itemName'],
-    requiredQuantity: params['requiredQuantity'],
-    unit: params['unit'],
-    unitPrice: params['unitPrice'],
-    description: params['description'],
+  return service.recordTransaction(
+    studentRequirementId: params['studentRequirementId'],
+    transactionType: params['transactionType'],
+    monetaryAmount: params['monetaryAmount'],
+    items: params['items'] as List<TransactionItem>,
+    notes: params['notes'],
+    perItemNotes: params['perItemNotes'] as Map<String, String>?,
+    perItemMoney: params['perItemMoney'] as Map<String, double>?, // NEW
   );
 });

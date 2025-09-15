@@ -37,13 +37,11 @@ class ItemLedgerService {
         queryParameters: queryParams,
       );
 
-      // Handle both single object and list responses
       if (response.data is List) {
         return (response.data as List)
             .map((json) => RequirementList.fromJson(json))
             .toList();
       } else {
-        // If it's a single object, wrap it in a list
         return [RequirementList.fromJson(response.data)];
       }
     } catch (e) {
@@ -54,25 +52,16 @@ class ItemLedgerService {
   Future<RequirementList> getRequirementList(String id) async {
     try {
       await _setAuthHeaders();
-      
-      final response = await _dio.get('/ItemLedger/requirement-lists/$id');
-      
-      // Check if response is a List or Map
-      if (response.data is List) {
-        // If it's a list, take the first item (assuming it's the requested item)
-        if ((response.data as List).isNotEmpty) {
-          return RequirementList.fromJson((response.data as List).first);
-        } else {
-          throw Exception('Requirement list not found');
-        }
-      } else if (response.data is Map<String, dynamic>) {
-        // If it's a map, parse it directly
-        return RequirementList.fromJson(response.data);
-      } else {
-        throw Exception('Unexpected response format: ${response.data.runtimeType}');
-      }
-    } catch (e) {
-      throw Exception('Failed to load requirement list: $e');
+      final resp = await _dio.get(
+        // FIX: correct route
+        '/ItemLedger/requirement-lists/$id',
+        queryParameters: {'_ts': DateTime.now().millisecondsSinceEpoch},
+      );
+      return RequirementList.fromJson(resp.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      final data = e.response?.data;
+      throw Exception('Failed to load requirement list (${status ?? 'unknown'}): ${data ?? e.message}');
     }
   }
 
@@ -219,7 +208,7 @@ class ItemLedgerService {
   Future<List<StudentRequirement>> getStudentRequirements({
     String? studentId,
     String? term,
-    String? academicYear,
+    int? academicYear,
     String? status,
   }) async {
     try {
@@ -251,26 +240,21 @@ class ItemLedgerService {
   Future<StudentRequirement> getStudentRequirement(String id) async {
     try {
       await _setAuthHeaders();
-      
-      final response = await _dio.get('/ItemLedger/student-requirements/$id');
-      
-      if (response.data is List) {
-        if ((response.data as List).isNotEmpty) {
-          return StudentRequirement.fromJson((response.data as List).first);
-        } else {
-          throw Exception('Student requirement not found');
-        }
-      } else {
-        return StudentRequirement.fromJson(response.data);
-      }
-    } catch (e) {
-      throw Exception('Failed to load student requirement: $e');
+      final resp = await _dio.get(
+        '/ItemLedger/student-requirements/$id',
+        queryParameters: {'_ts': DateTime.now().millisecondsSinceEpoch}, // cache buster
+      );
+      return StudentRequirement.fromJson(resp.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw Exception('Failed to load student requirement: ${e.response?.data ?? e.message}');
     }
   }
 
+  // Single student assignment
   Future<StudentRequirement> assignRequirement({
     required String studentId,
     required String requirementListId,
+    required List<String> selectedItemIds,
   }) async {
     try {
       await _setAuthHeaders();
@@ -278,6 +262,7 @@ class ItemLedgerService {
       final response = await _dio.post('/ItemLedger/student-requirements', data: {
         'studentId': studentId,
         'requirementListId': requirementListId,
+        'selectedItemIds': selectedItemIds,
       });
       
       if (response.data is List) {
@@ -294,16 +279,19 @@ class ItemLedgerService {
     }
   }
 
+  // Bulk student assignment
   Future<void> bulkAssignStudents({
-    required String requirementListId,
     required List<String> studentIds,
+    required String requirementListId,
+    required List<String> selectedItemIds,
   }) async {
     try {
       await _setAuthHeaders();
       
-      await _dio.post('/ItemLedger/assign-students', data: {
-        'requirementListId': requirementListId,
+      await _dio.post('/ItemLedger/bulk-assign-students', data: {
         'studentIds': studentIds,
+        'requirementListId': requirementListId,
+        'selectedItemIds': selectedItemIds,
       });
     } catch (e) {
       throw Exception('Failed to bulk assign students: $e');
@@ -313,31 +301,61 @@ class ItemLedgerService {
   // Transactions
   Future<ItemTransaction> recordTransaction({
     required String studentRequirementId,
-    required String transactionType,
+    required String transactionType, // 'Item' | 'Money'
     double? monetaryAmount,
     required List<TransactionItem> items,
-    String? remarks,
+    String? notes,
+    Map<String, String>? perItemNotes,
+    Map<String, double>? perItemMoney,
   }) async {
     try {
       await _setAuthHeaders();
-      
-      final response = await _dio.post('/ItemLedger/transactions', data: {
+
+      final payload = <String, dynamic>{
         'studentRequirementId': studentRequirementId,
-        'transactionType': transactionType,
-        'monetaryAmount': monetaryAmount,
-        'items': items.map((item) => item.toJson()).toList(),
-        'remarks': remarks,
-      });
-      
-      if (response.data is List) {
-        if ((response.data as List).isNotEmpty) {
-          return ItemTransaction.fromJson((response.data as List).first);
-        } else {
-          throw Exception('No data returned from record transaction operation');
-        }
+        'transactionDate': DateTime.now().toIso8601String(),
+        'items': <Map<String, dynamic>>[],
+      };
+
+      if (transactionType == 'Item') {
+        if (items.isEmpty) throw Exception('At least one item is required for Item transactions');
+        final missing = items.where((i) => (perItemNotes?[i.itemId] ?? '').trim().isEmpty).toList();
+        if (missing.isNotEmpty) throw Exception('Notes are required for each item');
+
+        payload['items'] = items.map((i) => {
+          'transactionType': 'Item',
+          'requirementItemId': i.itemId,   // uses RequirementStatus.itemId mapped above
+          'itemQuantity': i.quantity,
+          'moneyAmount': 0,
+          'notes': perItemNotes![i.itemId]!.trim(),
+        }).toList();
+      } else if (transactionType == 'Money') {
+        final amt = (monetaryAmount ?? 0);
+        if (amt <= 0) throw Exception('Amount must be provided for Money transactions');
+        if (notes == null || notes.trim().isEmpty) throw Exception('Notes are required for Money transactions');
+        if (perItemMoney == null || perItemMoney.isEmpty) throw Exception('Money allocation per item is required');
+
+        payload['items'] = perItemMoney.entries.map((e) => {
+          'transactionType': 'Money',
+          'requirementItemId': e.key,      // RequirementStatus.itemId per mapping
+          'itemQuantity': 0,
+          'moneyAmount': double.parse(e.value.toStringAsFixed(2)),
+          'notes': notes.trim(),
+        }).toList();
       } else {
-        return ItemTransaction.fromJson(response.data);
+        throw Exception('Unsupported transaction type: $transactionType');
       }
+
+      // print('[POST] /ItemLedger/transactions payload: $payload');
+
+      final response = await _dio.post('/ItemLedger/transactions', data: payload);
+      return response.data is Map<String, dynamic>
+          ? ItemTransaction.fromJson(response.data as Map<String, dynamic>)
+          : ItemTransaction.fromJson(((response.data as List).first) as Map<String, dynamic>);
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      final server = e.response?.data;
+      throw Exception('Failed to record transaction (${status ?? 'unknown'}): ${server ?? e.message}');
     } catch (e) {
       throw Exception('Failed to record transaction: $e');
     }
