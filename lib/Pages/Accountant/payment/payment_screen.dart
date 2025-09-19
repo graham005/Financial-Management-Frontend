@@ -12,6 +12,7 @@ import '../../../models/student_fee.dart';
 import '../../../models/payment.dart';
 import '../../../widgets/side_nav_layout.dart';
 import '../../../widgets/payment_detail_modal.dart';
+import '../thermal_receipt_preview_screen.dart';
 
 class SimplePaymentScreen extends ConsumerStatefulWidget {
   final Student student;
@@ -1260,6 +1261,36 @@ void _showAllPayments(List<Payment> payments, bool isDark) {
     ),
     child: Center(child: Text("Error: $error", style: GoogleFonts.underdog(color: AppColors.error))),
   );
+
+  // Add this method to your existing payment_screen.dart
+  void _printReceipt(String? paymentId) {
+    if (paymentId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No payment ID available for printing')),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ThermalReceiptPreviewScreen(transactionId: paymentId),
+      ),
+    );
+  }
+
+  // Add this button to your payment success UI or payment history items
+  Widget _buildPrintReceiptButton(String? paymentId) {
+    return ElevatedButton.icon(
+      onPressed: paymentId != null ? () => _printReceipt(paymentId) : null,
+      icon: const Icon(Icons.print),
+      label: const Text('Print Receipt'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.secondary,
+        foregroundColor: Colors.white,
+      ),
+    );
+  }
 }
 
 enum PaymentView { payment, arrears, previous }
