@@ -23,7 +23,6 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Load both student requirements and requirement lists
       _loadStudentRequirements();
       _loadRequirementLists();
     });
@@ -44,12 +43,10 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
     );
   }
 
-  // Add method to load requirement lists
   void _loadRequirementLists() {
     ref.read(requirementListProvider.notifier).loadRequirementLists();
   }
 
-  // Add debug dialog to show all requirement lists
   void _showRequirementListsDebug() {
     showDialog(
       context: context,
@@ -61,15 +58,15 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
   Widget build(BuildContext context) {
     final state = ref.watch(studentRequirementProvider);
     final studentsAsync = ref.watch(studentProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: theme.scaffoldBackgroundColor, // was AppColors.lightBackground
       appBar: AppBar(
         title: const Text('Student Requirements'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
-          // Add debug button
           IconButton(
             onPressed: () => _showRequirementListsDebug(),
             icon: const Icon(Icons.bug_report),
@@ -85,7 +82,6 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
             icon: const Icon(Icons.assignment_ind),
             tooltip: 'Bulk Assign',
           ),
-          // Add refresh button
           IconButton(
             onPressed: () {
               _loadStudentRequirements();
@@ -98,17 +94,17 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
       ),
       body: Column(
         children: [
-          _buildFilterSection(studentsAsync),
-          Expanded(child: _buildStudentRequirementsView(state)),
+          _buildFilterSection(studentsAsync, theme),
+          Expanded(child: _buildStudentRequirementsView(state, theme)),
         ],
       ),
     );
   }
 
-  Widget _buildFilterSection(AsyncValue<List<Student>> studentsAsync) {
+  Widget _buildFilterSection(AsyncValue<List<Student>> studentsAsync, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: theme.cardColor, // was Colors.white
       child: Column(
         children: [
           Row(
@@ -117,7 +113,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                 flex: 2,
                 child: studentsAsync.when(
                   loading: () => const CircularProgressIndicator(),
-                  error: (error, _) => Text('Error: $error'),
+                  error: (error, _) => Text('Error: $error', style: theme.textTheme.bodyMedium),
                   data: (students) => DropdownButtonFormField<String>(
                     decoration: const InputDecoration(
                       labelText: 'Student',
@@ -219,7 +215,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
     );
   }
 
-  Widget _buildStudentRequirementsView(StudentRequirementState state) {
+  Widget _buildStudentRequirementsView(StudentRequirementState state, ThemeData theme) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -231,7 +227,11 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
           children: [
             const Icon(Icons.error, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            Text(state.error!, textAlign: TextAlign.center),
+            Text(
+              state.error!,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadStudentRequirements,
@@ -247,10 +247,10 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.assignment, size: 64, color: Colors.grey),
+            Icon(Icons.assignment, size: 64, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(height: 16),
-            const Text('No student requirements found'),
-            const Text('Assign requirements to students to get started'),
+            Text('No student requirements found', style: theme.textTheme.titleMedium),
+            Text('Assign requirements to students to get started', style: theme.textTheme.bodyMedium),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -276,14 +276,15 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
       itemCount: state.requirements.length,
       itemBuilder: (context, index) {
         final requirement = state.requirements[index];
-        return _buildStudentRequirementCard(requirement);
+        return _buildStudentRequirementCard(requirement, theme);
       },
     );
   }
 
-  Widget _buildStudentRequirementCard(StudentRequirement requirement) {
+  Widget _buildStudentRequirementCard(StudentRequirement requirement, ThemeData theme) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: theme.cardColor,
       child: InkWell(
         onTap: () => _viewRequirementDetails(requirement.id),
         child: Padding(
@@ -299,10 +300,15 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                       children: [
                         Text(
                           requirement.studentName,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 4),
-                        Text('${requirement.term} ${requirement.academicYear}'),
+                        Text(
+                          '${requirement.term} ${requirement.academicYear}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
                       ],
                     ),
                   ),
@@ -310,7 +316,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                 ],
               ),
               const SizedBox(height: 12),
-              _buildProgressSection(requirement),
+              _buildProgressSection(requirement, theme),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -319,6 +325,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                       'Total Value',
                       '₦${requirement.totalValue.toStringAsFixed(2)}',
                       Icons.account_balance_wallet,
+                      theme,
                     ),
                   ),
                   Expanded(
@@ -326,6 +333,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                       'Outstanding',
                       '₦${requirement.outstandingValue.toStringAsFixed(2)}',
                       Icons.pending,
+                      theme,
                     ),
                   ),
                   SizedBox(
@@ -381,7 +389,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
     );
   }
 
-  Widget _buildProgressSection(StudentRequirement requirement) {
+  Widget _buildProgressSection(StudentRequirement requirement, ThemeData theme) {
     final completionPercentage = requirement.completionPercentage;
     
     return Column(
@@ -390,14 +398,14 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Completion Progress'),
-            Text('${completionPercentage.toStringAsFixed(1)}%'),
+            Text('Completion Progress', style: theme.textTheme.bodyMedium),
+            Text('${completionPercentage.toStringAsFixed(1)}%', style: theme.textTheme.bodyMedium),
           ],
         ),
         const SizedBox(height: 4),
         LinearProgressIndicator(
           value: completionPercentage / 100,
-          backgroundColor: Colors.grey[300],
+          backgroundColor: theme.colorScheme.surfaceVariant, // was Colors.grey[300]
           valueColor: AlwaysStoppedAnimation<Color>(
             completionPercentage >= 100
                 ? Colors.green
@@ -410,10 +418,10 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
     );
   }
 
-  Widget _buildInfoItem(String label, String value, IconData icon) {
+  Widget _buildInfoItem(String label, String value, IconData icon, ThemeData theme) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
+        Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 4),
         Expanded(
           child: Column(
@@ -421,16 +429,14 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
               Text(
                 value,
-                style: const TextStyle(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
                 ),
               ),
             ],
@@ -483,7 +489,6 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
       arguments: requirementId,
     );
     if (result == true && mounted) {
-      // Refresh the list so cards reflect new outstanding/received
       await ref.read(studentRequirementProvider.notifier).loadStudentRequirements(
         studentId: _selectedStudentId,
         term: _selectedTerm,
@@ -494,7 +499,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
   }
 }
 
-// Single Assignment Dialog
+// Single Assignment Dialog - Updated for dark mode
 class _AssignRequirementDialog extends ConsumerStatefulWidget {
   final VoidCallback onAssigned;
 
@@ -518,9 +523,11 @@ class _AssignRequirementDialogState extends ConsumerState<_AssignRequirementDial
     final selectedRequirementListAsync = _selectedRequirementListId != null
         ? ref.watch(requirementListDetailsProvider(_selectedRequirementListId!))
         : null;
+    final theme = Theme.of(context);
 
     return AlertDialog(
-      title: const Text('Assign Requirement to Student'),
+      backgroundColor: theme.dialogBackgroundColor,
+      title: Text('Assign Requirement to Student', style: theme.textTheme.titleLarge),
       content: SizedBox(
         width: MediaQuery.of(context).size.width * 0.8,
         height: MediaQuery.of(context).size.height * 0.6,
@@ -533,7 +540,7 @@ class _AssignRequirementDialogState extends ConsumerState<_AssignRequirementDial
                 // Student Selection
                 studentsAsync.when(
                   loading: () => const CircularProgressIndicator(),
-                  error: (error, _) => Text('Error loading students: $error'),
+                  error: (error, _) => Text('Error loading students: $error', style: theme.textTheme.bodyMedium),
                   data: (students) => DropdownButtonFormField<String>(
                     decoration: const InputDecoration(
                       labelText: 'Select Student *',
@@ -552,13 +559,13 @@ class _AssignRequirementDialogState extends ConsumerState<_AssignRequirementDial
                 
                 const SizedBox(height: 16),
                 
-                // Requirement List Selection - Fixed to handle loading and error states
+                // Requirement List Selection
                 if (requirementListsState.isLoading)
                   const Center(child: CircularProgressIndicator())
                 else if (requirementListsState.error != null)
                   Column(
                     children: [
-                      Text('Error loading requirement lists: ${requirementListsState.error}'),
+                      Text('Error loading requirement lists: ${requirementListsState.error}', style: theme.textTheme.bodyMedium),
                       ElevatedButton(
                         onPressed: () => ref.read(requirementListProvider.notifier).loadRequirementLists(),
                         child: const Text('Retry'),
@@ -595,8 +602,8 @@ class _AssignRequirementDialogState extends ConsumerState<_AssignRequirementDial
                 if (selectedRequirementListAsync != null)
                   selectedRequirementListAsync.when(
                     loading: () => const CircularProgressIndicator(),
-                    error: (error, _) => Text('Error loading items: $error'),
-                    data: (requirementList) => _buildItemsSelection(requirementList),
+                    error: (error, _) => Text('Error loading items: $error', style: theme.textTheme.bodyMedium),
+                    data: (requirementList) => _buildItemsSelection(requirementList, theme),
                   ),
               ],
             ),
@@ -623,7 +630,7 @@ class _AssignRequirementDialogState extends ConsumerState<_AssignRequirementDial
     );
   }
 
-  Widget _buildItemsSelection(requirementList) {
+  Widget _buildItemsSelection(requirementList, ThemeData theme) {
     final items = requirementList.items ?? [];
     
     return Column(
@@ -759,6 +766,7 @@ class _BulkAssignDialogState extends ConsumerState<_BulkAssignDialog> {
     final selectedRequirementListAsync = _selectedRequirementListId != null
         ? ref.watch(requirementListDetailsProvider(_selectedRequirementListId!))
         : null;
+    final theme = Theme.of(context);
 
     return AlertDialog(
       title: const Text('Bulk Assign Requirements'),
@@ -775,7 +783,7 @@ class _BulkAssignDialogState extends ConsumerState<_BulkAssignDialog> {
               else if (requirementListsState.error != null)
                 Column(
                   children: [
-                    Text('Error loading requirement lists: ${requirementListsState.error}'),
+                    Text('Error loading requirement lists: ${requirementListsState.error}', style: theme.textTheme.bodyMedium),
                     ElevatedButton(
                       onPressed: () => ref.read(requirementListProvider.notifier).loadRequirementLists(),
                       child: const Text('Retry'),
@@ -812,8 +820,8 @@ class _BulkAssignDialogState extends ConsumerState<_BulkAssignDialog> {
               if (selectedRequirementListAsync != null)
                 selectedRequirementListAsync.when(
                   loading: () => const CircularProgressIndicator(),
-                  error: (error, _) => Text('Error loading items: $error'),
-                  data: (requirementList) => _buildItemsSelection(requirementList),
+                  error: (error, _) => Text('Error loading items: $error', style: theme.textTheme.bodyMedium),
+                  data: (requirementList) => _buildItemsSelection(requirementList, theme),
                 ),
               
               const SizedBox(height: 16),
@@ -823,7 +831,7 @@ class _BulkAssignDialogState extends ConsumerState<_BulkAssignDialog> {
                 child: studentsAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
                   error: (error, _) => Center(child: Text('Error: $error')),
-                  data: (students) => _buildStudentSelection(students),
+                  data: (students) => _buildStudentSelection(students, theme),
                 ),
               ),
             ],
@@ -853,7 +861,7 @@ class _BulkAssignDialogState extends ConsumerState<_BulkAssignDialog> {
     );
   }
 
-  Widget _buildItemsSelection(requirementList) {
+  Widget _buildItemsSelection(requirementList, ThemeData theme) {
     final items = requirementList.items ?? [];
     
     return SizedBox(
@@ -921,7 +929,7 @@ class _BulkAssignDialogState extends ConsumerState<_BulkAssignDialog> {
     );
   }
 
-  Widget _buildStudentSelection(List<Student> allStudents) {
+  Widget _buildStudentSelection(List<Student> allStudents, ThemeData theme) {
     final filteredStudents = _searchQuery.isEmpty
         ? allStudents
         : allStudents.where((student) {

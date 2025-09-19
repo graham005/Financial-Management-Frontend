@@ -16,9 +16,11 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final studentRequirementAsync = ref.watch(studentRequirementDetailsProvider(studentRequirementId));
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: theme.scaffoldBackgroundColor, // was AppColors.lightBackground
       appBar: AppBar(
         title: const Text('Requirement Details'),
         backgroundColor: AppColors.primary,
@@ -39,7 +41,11 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error, size: 64, color: Colors.red),
               const SizedBox(height: 16),
-              Text(error.toString(), textAlign: TextAlign.center),
+              Text(
+                error.toString(),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.refresh(studentRequirementDetailsProvider(studentRequirementId)),
@@ -50,19 +56,19 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
         ),
         data: (requirement) => Column(
           children: [
-            _buildHeaderSection(requirement),
-            _buildSummarySection(requirement),
-            Expanded(child: _buildItemsStatusList(requirement.items)),
+            _buildHeaderSection(requirement, theme),
+            _buildSummarySection(requirement, theme),
+            Expanded(child: _buildItemsStatusList(requirement.items, theme)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeaderSection(StudentRequirement requirement) {
+  Widget _buildHeaderSection(StudentRequirement requirement, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: theme.cardColor, // was Colors.white
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -74,19 +80,20 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
                   children: [
                     Text(
                       requirement.studentName,
-                      style: const TextStyle(
-                        fontSize: 20,
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${requirement.term} ${requirement.academicYear}',
-                      style: const TextStyle(fontSize: 16),
+                      style: theme.textTheme.titleMedium,
                     ),
                     Text(
                       'Student ID: ${requirement.studentId}',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -112,16 +119,16 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummarySection(StudentRequirement requirement) {
+  Widget _buildSummarySection(StudentRequirement requirement, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // was Colors.white
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: theme.shadowColor.withOpacity(0.1), // theme-aware shadow
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -137,6 +144,7 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
                   '₦${requirement.totalValue.toStringAsFixed(2)}',
                   Icons.account_balance_wallet,
                   AppColors.primary,
+                  theme,
                 ),
               ),
               Expanded(
@@ -145,6 +153,7 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
                   '₦${requirement.outstandingValue.toStringAsFixed(2)}',
                   Icons.pending,
                   Colors.orange,
+                  theme,
                 ),
               ),
             ],
@@ -156,14 +165,20 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Overall Progress', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text('${requirement.completionPercentage.toStringAsFixed(1)}%'),
+                  Text(
+                    'Overall Progress',
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '${requirement.completionPercentage.toStringAsFixed(1)}%',
+                    style: theme.textTheme.bodyMedium,
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
               LinearProgressIndicator(
                 value: requirement.completionPercentage / 100,
-                backgroundColor: Colors.grey[300],
+                backgroundColor: theme.colorScheme.surfaceVariant, // was Colors.grey[300]
                 valueColor: AlwaysStoppedAnimation<Color>(
                   requirement.completionPercentage >= 100
                       ? Colors.green
@@ -179,23 +194,21 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryItem(String title, String value, IconData icon, Color color) {
+  Widget _buildSummaryItem(String title, String value, IconData icon, Color color, ThemeData theme) {
     return Column(
       children: [
         Icon(icon, size: 24, color: color),
         const SizedBox(height: 8),
         Text(
           title,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
-            fontSize: 16,
+          style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: color,
           ),
@@ -204,10 +217,13 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildItemsStatusList(List<RequirementStatus> items) {
+  Widget _buildItemsStatusList(List<RequirementStatus> items, ThemeData theme) {
     if (items.isEmpty) {
-      return const Center(
-        child: Text('No items found'),
+      return Center(
+        child: Text(
+          'No items found',
+          style: theme.textTheme.bodyMedium,
+        ),
       );
     }
 
@@ -215,14 +231,15 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        return _buildItemStatusCard(items[index]);
+        return _buildItemStatusCard(items[index], theme);
       },
     );
   }
 
-  Widget _buildItemStatusCard(RequirementStatus status) {
+  Widget _buildItemStatusCard(RequirementStatus status, ThemeData theme) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: theme.cardColor,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -233,8 +250,7 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     status.itemName,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -250,18 +266,21 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
                   child: _buildItemInfo(
                     'Required',
                     '${status.requiredQuantity} ${status.unit}',
+                    theme,
                   ),
                 ),
                 Expanded(
                   child: _buildItemInfo(
                     'Received',
                     '${status.receivedQuantity} ${status.unit}',
+                    theme,
                   ),
                 ),
                 Expanded(
                   child: _buildItemInfo(
                     'Outstanding',
                     '${status.outstandingQuantity} ${status.unit}',
+                    theme,
                   ),
                 ),
               ],
@@ -273,11 +292,14 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Progress: ${status.fulfillmentPercentage.toStringAsFixed(1)}%'),
+                      Text(
+                        'Progress: ${status.fulfillmentPercentage.toStringAsFixed(1)}%',
+                        style: theme.textTheme.bodyMedium,
+                      ),
                       const SizedBox(height: 4),
                       LinearProgressIndicator(
                         value: status.fulfillmentPercentage / 100,
-                        backgroundColor: Colors.grey[300],
+                        backgroundColor: theme.colorScheme.surfaceVariant, // was Colors.grey[300]
                         valueColor: AlwaysStoppedAnimation<Color>(
                           status.isFullyFulfilled
                               ? Colors.green
@@ -295,14 +317,13 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
                   children: [
                     Text(
                       'Outstanding Value',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     Text(
                       '₦${status.outstandingValue.toStringAsFixed(2)}',
-                      style: const TextStyle(
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.orange,
                       ),
@@ -317,20 +338,19 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildItemInfo(String label, String value) {
+  Widget _buildItemInfo(String label, String value, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),

@@ -17,9 +17,10 @@ class RequirementListDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requirementListAsync = ref.watch(requirementListDetailsProvider(requirementListId));
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Requirement List Details'),
         backgroundColor: AppColors.primary,
@@ -40,7 +41,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error, size: 64, color: Colors.red),
               const SizedBox(height: 16),
-              Text(error.toString(), textAlign: TextAlign.center),
+              Text(error.toString(), textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.refresh(requirementListDetailsProvider(requirementListId)),
@@ -51,7 +52,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
         ),
         data: (requirementList) => Column(
           children: [
-            _buildHeaderSection(requirementList),
+            _buildHeaderSection(context, requirementList),
             Expanded(child: _buildItemsList(context, ref, requirementList.items ?? [])),
           ],
         ),
@@ -59,10 +60,13 @@ class RequirementListDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeaderSection(RequirementList requirementList) {
+  Widget _buildHeaderSection(BuildContext context, RequirementList requirementList) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: theme.cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -74,15 +78,14 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                   children: [
                     Text(
                       '${requirementList.term} ${requirementList.academicYear}',
-                      style: const TextStyle(
-                        fontSize: 20,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('Status: ${requirementList.status}'),
-                    Text('Items: ${requirementList.itemCount}'),
-                    Text('Created: ${requirementList.createdAt.toString().split(' ')[0]}'),
+                    Text('Status: ${requirementList.status}', style: theme.textTheme.bodyMedium),
+                    Text('Items: ${requirementList.itemCount}', style: theme.textTheme.bodyMedium),
+                    Text('Created: ${requirementList.createdAt.toString().split(' ')[0]}', style: theme.textTheme.bodyMedium),
                   ],
                 ),
               ),
@@ -91,7 +94,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: requirementList.status == 'Active' 
                       ? Colors.green.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
+                      : cs.outline.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -99,7 +102,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                   style: TextStyle(
                     color: requirementList.status == 'Active' 
                         ? Colors.green
-                        : Colors.grey,
+                        : cs.outline,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -112,14 +115,17 @@ class RequirementListDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildItemsList(BuildContext context, WidgetRef ref, List<RequirementItem> items) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    
     if (items.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.inventory_2, size: 64, color: Colors.grey),
+            Icon(Icons.inventory_2, size: 64, color: cs.outline),
             const SizedBox(height: 16),
-            const Text('No items in this requirement list'),
+            Text('No items in this requirement list', style: theme.textTheme.bodyLarge),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _showAddItemDialog(context, ref),
@@ -140,6 +146,8 @@ class RequirementListDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildRequirementItemCard(BuildContext context, WidgetRef ref, RequirementItem item) {
+    final theme = Theme.of(context);
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -152,8 +160,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     item.itemName,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -198,18 +205,20 @@ class RequirementListDetailsScreen extends ConsumerWidget {
             if (item.description != null) ...[
               Text(
                 item.description!,
-                style: TextStyle(color: Colors.grey[600]),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 8),
             ],
             Row(
               children: [
                 _buildInfoChip(
+                  context,
                   'Quantity: ${item.requiredQuantity} ${item.unit}',
                   Icons.inventory,
                 ),
                 const SizedBox(width: 12),
                 _buildInfoChip(
+                  context,
                   'Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}',
                   Icons.attach_money,
                 ),
@@ -241,23 +250,25 @@ class RequirementListDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoChip(String text, IconData icon) {
+  Widget _buildInfoChip(BuildContext context, String text, IconData icon) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: cs.surfaceVariant,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
+          Icon(icon, size: 16, color: cs.onSurfaceVariant),
           const SizedBox(width: 4),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[700],
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
             ),
           ),
         ],
@@ -266,6 +277,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
   }
 
   void _showAddItemDialog(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final formKey = GlobalKey<FormState>();
     final itemNameController = TextEditingController();
     final quantityController = TextEditingController();
@@ -276,7 +288,8 @@ class RequirementListDetailsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Requirement Item'),
+        backgroundColor: theme.dialogBackgroundColor,
+        title: Text('Add Requirement Item', style: theme.textTheme.titleLarge),
         content: SizedBox(
           width: MediaQuery.of(context).size.width * 0.8,
           child: Form(
@@ -398,7 +411,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 Text(
                                   'Total Cost: ₦${total.toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primary,
                                   ),
@@ -438,7 +451,6 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                   if (context.mounted) {
                     Navigator.pop(context);
                     ref.refresh(requirementListDetailsProvider(requirementListId));
-                    // Also refresh the lists so itemCount updates
                     await ref.read(requirementListProvider.notifier).loadRequirementLists();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Item added successfully')),
@@ -462,6 +474,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
   }
 
   void _showEditItemDialog(BuildContext context, WidgetRef ref, RequirementItem item) {
+    final theme = Theme.of(context);
     final formKey = GlobalKey<FormState>();
     final itemNameController = TextEditingController(text: item.itemName);
     final quantityController = TextEditingController(text: item.requiredQuantity.toString());
@@ -472,7 +485,8 @@ class RequirementListDetailsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Requirement Item'),
+        backgroundColor: theme.dialogBackgroundColor,
+        title: Text('Edit Requirement Item', style: theme.textTheme.titleLarge),
         content: SizedBox(
           width: MediaQuery.of(context).size.width * 0.8,
           child: Form(
@@ -596,7 +610,6 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                   if (context.mounted) {
                     Navigator.pop(context);
                     ref.refresh(requirementListDetailsProvider(requirementListId));
-                    // Refresh lists to update itemCount in cards
                     await ref.read(requirementListProvider.notifier).loadRequirementLists();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Item updated successfully')),
@@ -620,11 +633,13 @@ class RequirementListDetailsScreen extends ConsumerWidget {
   }
 
   void _deleteItem(BuildContext context, WidgetRef ref, String itemId) async {
+    final theme = Theme.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Deletion'),
-        content: const Text('Are you sure you want to delete this item?'),
+        backgroundColor: theme.dialogBackgroundColor,
+        title: Text('Confirm Deletion', style: theme.textTheme.titleLarge),
+        content: Text('Are you sure you want to delete this item?', style: theme.textTheme.bodyMedium),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -643,7 +658,6 @@ class RequirementListDetailsScreen extends ConsumerWidget {
         await ref.read(itemLedgerServiceProvider).deleteRequirementItem(itemId);
         if (context.mounted) {
           ref.refresh(requirementListDetailsProvider(requirementListId));
-          // Refresh lists to update itemCount in cards
           await ref.read(requirementListProvider.notifier).loadRequirementLists();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Item deleted successfully')),

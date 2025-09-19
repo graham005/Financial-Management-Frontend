@@ -36,9 +36,10 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(requirementListProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Requirement Lists'),
         backgroundColor: AppColors.primary,
@@ -46,22 +47,24 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
       ),
       body: Column(
         children: [
-          _buildFilterSection(),
-          Expanded(child: _buildRequirementListsView(state)),
+          _buildFilterSection(context),
+          Expanded(child: _buildRequirementListsView(context, state)),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateRequirementListDialog(),
+        onPressed: () => _showCreateRequirementListDialog(context),
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildFilterSection() {
+  Widget _buildFilterSection(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: theme.cardColor,
       child: Row(
         children: [
           Expanded(
@@ -119,7 +122,10 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
     );
   }
 
-  Widget _buildRequirementListsView(RequirementListState state) {
+  Widget _buildRequirementListsView(BuildContext context, RequirementListState state) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -131,7 +137,7 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
           children: [
             const Icon(Icons.error, size: 64, color: Colors.red),
             const SizedBox(height: 16),
-            Text(state.error!, textAlign: TextAlign.center),
+            Text(state.error!, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadRequirementLists,
@@ -143,14 +149,14 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
     }
 
     if (state.lists.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.list_alt, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('No requirement lists found'),
-            Text('Create a new requirement list to get started'),
+            Icon(Icons.list_alt, size: 64, color: cs.outline),
+            const SizedBox(height: 16),
+            Text('No requirement lists found', style: theme.textTheme.bodyLarge),
+            Text('Create a new requirement list to get started', style: theme.textTheme.bodyMedium),
           ],
         ),
       );
@@ -161,25 +167,27 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
       itemCount: state.lists.length,
       itemBuilder: (context, index) {
         final requirementList = state.lists[index];
-        return _buildRequirementListCard(requirementList);
+        return _buildRequirementListCard(context, requirementList);
       },
     );
   }
 
-  Widget _buildRequirementListCard(RequirementList requirementList) {
+  Widget _buildRequirementListCard(BuildContext context, RequirementList requirementList) {
+    final theme = Theme.of(context);
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         title: Text(
           '${requirementList.term} ${requirementList.academicYear}',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Items: ${requirementList.itemCount}'),
-            Text('Status: ${requirementList.status}'),
-            Text('Created: ${requirementList.createdAt.toString().split(' ')[0]}'),
+            Text('Items: ${requirementList.itemCount}', style: theme.textTheme.bodySmall),
+            Text('Status: ${requirementList.status}', style: theme.textTheme.bodySmall),
+            Text('Created: ${requirementList.createdAt.toString().split(' ')[0]}', style: theme.textTheme.bodySmall),
           ],
         ),
         trailing: PopupMenuButton<String>(
@@ -204,7 +212,8 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
     );
   }
 
-  void _showCreateRequirementListDialog() {
+  void _showCreateRequirementListDialog(BuildContext context) {
+    final theme = Theme.of(context);
     final termController = TextEditingController();
     final yearController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -212,7 +221,8 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Requirement List'),
+        backgroundColor: theme.dialogBackgroundColor,
+        title: Text('Create Requirement List', style: theme.textTheme.titleLarge),
         content: Form(
           key: formKey,
           child: Column(
@@ -286,11 +296,13 @@ class _RequirementListsScreenState extends ConsumerState<RequirementListsScreen>
   }
 
   void _archiveRequirementList(String id) async {
+    final theme = Theme.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Archive Requirement List'),
-        content: const Text('Are you sure you want to archive this requirement list?'),
+        backgroundColor: theme.dialogBackgroundColor,
+        title: Text('Archive Requirement List', style: theme.textTheme.titleLarge),
+        content: Text('Are you sure you want to archive this requirement list?', style: theme.textTheme.bodyMedium),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
