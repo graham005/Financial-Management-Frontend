@@ -63,7 +63,8 @@ class SideNavLayout extends ConsumerWidget {
                         backgroundColor: Colors.white,
                         child: Text(
                           authState.username?.substring(0, 1).toUpperCase() ??
-                          authState.email?.substring(0, 1).toUpperCase() ?? 'U',
+                              authState.email?.substring(0, 1).toUpperCase() ??
+                              'U',
                           style: GoogleFonts.underdog(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -72,7 +73,6 @@ class SideNavLayout extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      
                       Column(
                         children: [
                           Text(
@@ -84,7 +84,8 @@ class SideNavLayout extends ConsumerWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
@@ -103,15 +104,16 @@ class SideNavLayout extends ConsumerWidget {
                     ],
                   ),
                 ),
-                
+
                 // Navigation Items
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    children: _buildNavItems(context, authState.userRole ?? 'Admin'),
+                    children:
+                        _buildNavItems(context, authState.userRole ?? 'Admin'),
                   ),
                 ),
-                
+
                 // Theme Toggle and Logout
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -119,7 +121,9 @@ class SideNavLayout extends ConsumerWidget {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+                          color: isDark
+                              ? AppColors.darkBackground
+                              : AppColors.lightBackground,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: ListTile(
@@ -174,7 +178,7 @@ class SideNavLayout extends ConsumerWidget {
               ],
             ),
           ),
-          
+
           // Main Content
           Expanded(
             child: child,
@@ -223,16 +227,22 @@ class SideNavLayout extends ConsumerWidget {
         currentRoute: currentRoute,
       ),
       _NavItem(
-      icon: Icons.assignment_turned_in,
-      title: 'Required Items',
-      route: '/requirement-list',
-      currentRoute: currentRoute,
+        icon: Icons.assignment_turned_in,
+        title: 'Required Items',
+        route: '/requirement-list',
+        currentRoute: currentRoute,
       ),
       _NavItem(
-      icon: Icons.inventory_outlined,
-      title: 'Student Requirements',
-      route: '/student-requirement',
-      currentRoute: currentRoute,
+        icon: Icons.inventory_outlined,
+        title: 'Student Requirements',
+        route: '/student-requirement',
+        currentRoute: currentRoute,
+      ),
+      _NavItem(
+        icon: Icons.print,
+        title: 'Printer Settings',
+        route: '/printer-settings',
+        currentRoute: currentRoute,
       ),
     ];
 
@@ -240,7 +250,7 @@ class SideNavLayout extends ConsumerWidget {
       _NavItem(
         icon: Icons.dashboard,
         title: 'Dashboard',
-        route: '/dashboard',
+        route: '/accountant/dashboard',
         currentRoute: currentRoute,
       ),
       _NavItem(
@@ -261,16 +271,16 @@ class SideNavLayout extends ConsumerWidget {
         route: '/payments',
         currentRoute: currentRoute,
       ),
-       _NavItem(
-      icon: Icons.inventory_outlined,
-      title: 'Item Management',
-      route: '/student-requirement',
-      currentRoute: currentRoute,
+      _NavItem(
+        icon: Icons.inventory_outlined,
+        title: 'Item Management',
+        route: '/student-requirement',
+        currentRoute: currentRoute,
       ),
       _NavItem(
         icon: Icons.analytics,
         title: 'Reports',
-        route: '/reports',
+        route: '/thermal-receipt-preview',
         currentRoute: currentRoute,
       ),
     ];
@@ -356,7 +366,8 @@ class _NavItemState extends State<_NavItem>
               border: isSelected
                   ? Border.all(color: AppColors.primary.withValues(alpha: 0.3))
                   : _isHovered
-                      ? Border.all(color: AppColors.primary.withValues(alpha: 0.2))
+                      ? Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.2))
                       : null,
               boxShadow: _isHovered && !isSelected
                   ? [
@@ -402,8 +413,8 @@ class _NavItemState extends State<_NavItem>
                         : _isHovered
                             ? AppColors.primary.withValues(alpha: 0.9)
                             : (isDark ? Colors.white : Colors.black87),
-                    fontWeight: isSelected || _isHovered 
-                        ? FontWeight.w600 
+                    fontWeight: isSelected || _isHovered
+                        ? FontWeight.w600
                         : FontWeight.normal,
                   ),
                 ),
