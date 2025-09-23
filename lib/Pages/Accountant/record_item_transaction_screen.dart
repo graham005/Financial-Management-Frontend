@@ -39,9 +39,11 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   @override
   Widget build(BuildContext context) {
     final studentRequirementAsync = ref.watch(studentRequirementDetailsProvider(widget.studentRequirementId));
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: theme.scaffoldBackgroundColor, // was AppColors.lightBackground
       appBar: AppBar(
         title: const Text('Record Transaction'),
         backgroundColor: AppColors.primary,
@@ -88,24 +90,22 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   }
 
   Widget _buildStudentInfoSection(StudentRequirement requirement) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: theme.cardColor, // was Colors.white
       child: Row(
         children: [
-          const Icon(Icons.person, color: AppColors.primary),
+          Icon(Icons.person, color: theme.colorScheme.primary), // was AppColors.primary
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 requirement.studentName,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
-              Text('${requirement.term} ${requirement.academicYear}'),
+              Text('${requirement.term} ${requirement.academicYear}', style: theme.textTheme.bodyMedium),
             ],
           ),
         ],
@@ -114,23 +114,18 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   }
 
   Widget _buildTransactionTypeSection() {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // was Colors.white
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Transaction Type',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text('Transaction Type', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -171,26 +166,22 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   }
 
   Widget _buildMonetarySection(StudentRequirement requirement) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // was Colors.white
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Monetary Contribution',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text('Monetary Contribution', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
             'Outstanding: ₦${requirement.outstandingValue.toStringAsFixed(2)}',
-            style: const TextStyle(color: Colors.orange),
+            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.orange),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -234,20 +225,17 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: cs.surfaceVariant, // was Colors.blue.withOpacity(0.1)
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline, color: Colors.blue),
-                SizedBox(width: 8),
+                Icon(Icons.info_outline, color: cs.primary),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Monetary contributions will be allocated proportionally across all outstanding items.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.blue,
-                    ),
+                    style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ),
               ],
@@ -259,25 +247,21 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   }
 
   Widget _buildItemsSection(StudentRequirement requirement) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // was Colors.white
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Text(
-                'Items Received',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Spacer(),
+              Text('Items Received', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const Spacer(),
             ],
           ),
           const SizedBox(height: 12),
@@ -291,18 +275,18 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: cs.surfaceVariant, // was Colors.grey[100]
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Center(
+              child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.inventory_2, size: 48, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text('No items added yet'),
+                    Icon(Icons.inventory_2, size: 48, color: cs.onSurfaceVariant),
+                    const SizedBox(height: 8),
+                    Text('No items added yet', style: theme.textTheme.bodyMedium),
                     Text(
                       'Use the + buttons above to add received items',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -318,40 +302,40 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   }
 
   Widget _buildOutstandingItemsPicker(StudentRequirement requirement) {
-    // If there are no items at all, tell the user (not “fulfilled”)
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     if (requirement.items.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.08),
+          color: cs.surfaceVariant,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.info_outline, color: Colors.grey),
-            SizedBox(width: 8),
-            Expanded(child: Text('No items found for this requirement')),
+            Icon(Icons.info_outline, color: cs.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Expanded(child: Text('No items found for this requirement', style: theme.textTheme.bodyMedium)),
           ],
         ),
       );
     }
 
-    final outstanding = requirement.items
-        .where((RequirementStatus s) => s.outstandingQuantity > 0)
-        .toList();
+    final outstanding = requirement.items.where((s) => s.outstandingQuantity > 0).toList();
 
     if (outstanding.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.green.withOpacity(0.08),
+          color: cs.secondaryContainer, // theme-friendly success background
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Expanded(child: Text('All items have been fulfilled')),
+            Icon(Icons.check_circle, color: cs.onSecondaryContainer),
+            const SizedBox(width: 8),
+            Expanded(child: Text('All items have been fulfilled', style: theme.textTheme.bodyMedium)),
           ],
         ),
       );
@@ -403,9 +387,10 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
         return Card(
           margin: const EdgeInsets.only(bottom: 8),
           child: ListTile(
-            title: Text(s.itemName),
+            title: Text(s.itemName, style: theme.textTheme.bodyLarge),
             subtitle: Text(
               'Outstanding: ${s.outstandingQuantity} ${s.unit} • Unit: ₦${s.unitPrice.toStringAsFixed(2)}',
+              style: theme.textTheme.bodySmall,
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -415,11 +400,11 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                   onPressed: currentQty > 0 ? removeOne : null,
                   icon: const Icon(Icons.remove_circle_outline),
                 ),
-                Text('$currentQty'),
+                Text('$currentQty', style: theme.textTheme.bodyMedium),
                 IconButton(
                   tooltip: 'Add one',
                   onPressed: remaining > 0 ? addOne : null,
-                  icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+                  icon: Icon(Icons.add_circle_outline, color: cs.primary),
                 ),
               ],
             ),
@@ -430,6 +415,8 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   }
 
   Widget _buildTransactionItemCard(int index, TransactionItem item) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -439,14 +426,17 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(item.itemName),
-              subtitle: Text('Quantity: ${item.quantity} | Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}'),
+              title: Text(item.itemName, style: theme.textTheme.bodyLarge),
+              subtitle: Text(
+                'Quantity: ${item.quantity} | Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}',
+                style: theme.textTheme.bodySmall,
+              ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     '₦${item.totalValue.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
                     ),
@@ -455,7 +445,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                     onPressed: () {
                       setState(() {
                         _transactionItems.removeAt(index);
-                        _itemNotes.remove(item.itemId); // NEW
+                        _itemNotes.remove(item.itemId);
                       });
                     },
                     icon: const Icon(Icons.delete, color: Colors.red),
@@ -467,9 +457,10 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
             TextFormField(
               initialValue: _itemNotes[item.itemId] ?? '',
               onChanged: (v) => _itemNotes[item.itemId] = v,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Item note (required)',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                // helper/error colors handled by theme
               ),
               validator: (v) {
                 final val = (v ?? '').trim();
@@ -484,28 +475,23 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
       ));
   }
 
-  Widget _buildNotesSection() { // renamed
+  Widget _buildNotesSection() {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // was Colors.white
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Notes (Optional)', // renamed
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text('Notes (Optional)', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           TextFormField(
             controller: _notesController,
             decoration: const InputDecoration(
-              hintText: 'Add any additional notes about this transaction', // renamed
+              hintText: 'Add any additional notes about this transaction',
               border: OutlineInputBorder(),
             ),
             maxLines: 3,
@@ -516,6 +502,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   }
 
   Widget _buildActionButtons() {
+    final theme = Theme.of(context);
     return Row(
       children: [
         Expanded(
@@ -538,7 +525,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
-                : const Text('Record Transaction', style: TextStyle(color: Colors.white)),
+                : Text('Record Transaction', style: theme.textTheme.labelLarge?.copyWith(color: Colors.white)),
           ),
         ),
       ],
