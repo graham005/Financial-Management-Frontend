@@ -1,12 +1,16 @@
 //import 'package:finance_management_frontend/Pages/Accountant/record_item_transaction_screen.dart';
+import 'package:finance_management_frontend/Pages/Accountant/accountant_dashboard.dart';
 import 'package:finance_management_frontend/Pages/Admin/grades_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_list_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/student_requirements_screen.dart';
 import 'Pages/Accountant/fee_structure_display_screen.dart';
+import 'Pages/Accountant/print_history_screen.dart';
 import 'Pages/Accountant/record_item_transaction_screen.dart';
 import 'Pages/Accountant/students_display_screen.dart';
+import 'Pages/Accountant/thermal_receipt_preview_screen.dart';
 import 'Pages/Admin/fee_structure_screen.dart';
 import 'Pages/Admin/other_fees_screen.dart';
+import 'Pages/Admin/printer_settings_screen.dart';
 import 'Pages/Admin/requirement/requirement_list_details_screen.dart';
 import 'Pages/Admin/requirement/student_requirement_details_screen.dart';
 import 'Pages/Admin/student_onboarding_screen.dart';
@@ -75,6 +79,10 @@ class MyApp extends ConsumerWidget {
               currentRoute: '/payments',
               child: StudentSelectionScreen(),
             ),
+        "/accountant/dashboard": (context) => const SideNavLayout(
+              currentRoute: '/accountant/dashboard',
+              child: AccountantDashboardScreen(),
+            ),
         "accountant/students": (context) => const SideNavLayout(
               currentRoute: 'accountant/students',
               child: StudentsDisplayScreen(),
@@ -88,10 +96,12 @@ class MyApp extends ConsumerWidget {
               child: RequirementListsScreen(),
             ),
         "/requirement-list-details": (context) {
-          final requirementListId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          final requirementListId =
+              ModalRoute.of(context)?.settings.arguments as String? ?? '';
           return SideNavLayout(
             currentRoute: '/requirement-list-details',
-            child: RequirementListDetailsScreen(requirementListId: requirementListId),
+            child: RequirementListDetailsScreen(
+                requirementListId: requirementListId),
           );
         },
         "/student-requirement": (context) => const SideNavLayout(
@@ -99,19 +109,39 @@ class MyApp extends ConsumerWidget {
               child: StudentRequirementsScreen(),
             ),
         "/student-requirement-details": (context) {
-          final studentRequirementId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          final studentRequirementId =
+              ModalRoute.of(context)?.settings.arguments as String? ?? '';
           return SideNavLayout(
             currentRoute: '/student-requirement-details',
-            child: StudentRequirementDetailsScreen(studentRequirementId: studentRequirementId),
+            child: StudentRequirementDetailsScreen(
+                studentRequirementId: studentRequirementId),
           );
         },
         "/record-transaction": (context) {
-          final studentRequirementId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          final studentRequirementId =
+              ModalRoute.of(context)?.settings.arguments as String? ?? '';
           return SideNavLayout(
             currentRoute: '/record-transaction',
-            child: RecordTransactionScreen(studentRequirementId: studentRequirementId),
+            child: RecordTransactionScreen(
+                studentRequirementId: studentRequirementId),
           );
         },
+        "/thermal-receipt-preview": (context) {
+          final transactionId =
+              ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          return SideNavLayout(
+            currentRoute: '/thermal-receipt-preview',
+            child: ThermalReceiptPreviewScreen(transactionId: transactionId),
+          );
+        },
+        "/printer-settings": (context) => const SideNavLayout(
+              currentRoute: '/printer-settings',
+              child: PrinterSettingsScreen(),
+            ),
+        "/accountant/print-history": (context) => const SideNavLayout(
+              currentRoute: '/accountant/print-history',
+              child: PrintHistoryScreen(),
+            ),
       },
     );
   }
