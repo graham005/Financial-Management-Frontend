@@ -1256,7 +1256,7 @@ void _showAllPayments(List<Payment> payments, bool isDark) {
   Widget _errorCard(String error) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: AppColors.error.withOpacity(0.05),
+      color: AppColors.error.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(14),
     ),
     child: Center(child: Text("Error: $error", style: GoogleFonts.underdog(color: AppColors.error))),
