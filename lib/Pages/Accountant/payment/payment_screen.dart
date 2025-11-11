@@ -1266,7 +1266,7 @@ void _showAllPayments(List<Payment> payments, bool isDark) {
   void _printReceipt(String? paymentId) {
     if (paymentId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No payment ID available for printing')),
+        const SnackBar(content: Text('No payments ID available for printing')),
       );
       return;
     }
