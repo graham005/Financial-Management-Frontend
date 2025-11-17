@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import '../models/thermal_receipt.dart';
 
 class ReceiptFormatter {
-  static final _currency = NumberFormat.currency(symbol: '₦');
+  static final _currency = NumberFormat.currency(symbol: 'KES ');
 
   /// Build ESC/POS bytes using the esc_pos_utils Generator
   static Future<List<int>> buildEscPosBytes(
