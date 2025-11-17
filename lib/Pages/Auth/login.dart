@@ -394,12 +394,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       await ref.read(authProvider.notifier).login(email, password);
+      
       if (mounted) {
-        Navigator.pushReplacementNamed(context, "/dashboard");
+        // Get the updated auth state after login
+        final authState = ref.read(authProvider);
+        final userRole = authState.userRole ?? 'Admin'; // Default to Admin
+        
+        // Navigate based on user role
+        String redirectRoute;
+        switch (userRole.toLowerCase()) {
+          case 'accountant':
+            redirectRoute = '/accountant/dashboard';
+            break;
+          case 'admin':
+          default:
+            redirectRoute = '/dashboard';
+            break;
+        }
+        
+        Navigator.pushReplacementNamed(context, redirectRoute);
+        
+        // Show welcome message with role
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Welcome back! Logged in as $userRole',
+              style: GoogleFonts.underdog(),
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        print(e);
+        print('Login error: $e');
         _showErrorSnackBar("Invalid credentials. Please try again.");
       }
     } finally {
