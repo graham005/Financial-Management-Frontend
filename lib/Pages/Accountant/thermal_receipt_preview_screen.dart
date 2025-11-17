@@ -301,7 +301,7 @@ class _ThermalReceiptPreviewScreenState extends ConsumerState<ThermalReceiptPrev
               Expanded(
                 flex: 2,
                 child: Text(
-                  '₦${item.totalAmount.toStringAsFixed(2)}', // Changed from KES to ₦ to match your currency
+                  'KES ${item.totalAmount.toStringAsFixed(2)}', // Changed from KES to KES  to match your currency
                   style: GoogleFonts.underdog(fontSize: 12),
                   textAlign: TextAlign.right,
                 ),
@@ -343,9 +343,9 @@ class _ThermalReceiptPreviewScreenState extends ConsumerState<ThermalReceiptPrev
         _buildInfoRow('Method:', payment.paymentMethod),
         if (payment.transactionReference != null)
           _buildInfoRow('Reference:', payment.transactionReference!),
-        _buildInfoRow('Amount Received:', '₦${payment.amountReceived.toStringAsFixed(2)}'), // Changed currency
+        _buildInfoRow('Amount Received:', 'KES ${payment.amountReceived.toStringAsFixed(2)}'), // Changed currency
         if (payment.changeAmount > 0)
-          _buildInfoRow('Change:', '₦${payment.changeAmount.toStringAsFixed(2)}'), // Changed currency
+          _buildInfoRow('Change:', 'KES ${payment.changeAmount.toStringAsFixed(2)}'), // Changed currency
       ],
     );
   }
@@ -410,7 +410,7 @@ class _ThermalReceiptPreviewScreenState extends ConsumerState<ThermalReceiptPrev
             ),
           ),
           Text(
-            '₦${amount.toStringAsFixed(2)}', // Changed currency symbol
+            'KES ${amount.toStringAsFixed(2)}', // Changed currency symbol
             style: GoogleFonts.underdog(
               fontSize: isTotal ? 14 : 12,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,

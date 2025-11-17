@@ -204,7 +204,7 @@ class ThermalReceiptService {
       print('   - Receipt Number: $receiptNumber');
       print('   - Student: $studentName');
       print('   - Items: ${items.length}');
-      print('   - Total: ₦${grandTotal.toStringAsFixed(2)}');
+      print('   - Total: KES ${grandTotal.toStringAsFixed(2)}');
 
       return ThermalReceipt(
         receiptId: transactionId,
@@ -300,7 +300,7 @@ class ThermalReceiptService {
     }
 
     print('🏗️ Created ${items.length} receipt items');
-    print('🏗️ Total amount: ₦${amount.toStringAsFixed(2)}');
+    print('🏗️ Total amount: KES ${amount.toStringAsFixed(2)}');
 
     return ThermalReceipt(
       receiptId: transactionId,
