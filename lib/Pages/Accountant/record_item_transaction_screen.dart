@@ -180,7 +180,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
           Text('Monetary Contribution', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
-            'Outstanding: ₦${requirement.outstandingValue.toStringAsFixed(2)}',
+            'Outstanding: KES ${requirement.outstandingValue.toStringAsFixed(2)}',
             style: theme.textTheme.bodyMedium?.copyWith(color: Colors.orange),
           ),
           const SizedBox(height: 12),
@@ -202,9 +202,9 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
           TextFormField(
             controller: _monetaryAmountController,
             decoration: const InputDecoration(
-              labelText: 'Amount (₦) *',
+              labelText: 'Amount (KES ) *',
               border: OutlineInputBorder(),
-              prefixText: '₦ ',
+              prefixText: 'KES  ',
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
@@ -389,7 +389,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
           child: ListTile(
             title: Text(s.itemName, style: theme.textTheme.bodyLarge),
             subtitle: Text(
-              'Outstanding: ${s.outstandingQuantity} ${s.unit} • Unit: ₦${s.unitPrice.toStringAsFixed(2)}',
+              'Outstanding: ${s.outstandingQuantity} ${s.unit} • Unit: KES ${s.unitPrice.toStringAsFixed(2)}',
               style: theme.textTheme.bodySmall,
             ),
             trailing: Row(
@@ -428,14 +428,14 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
               contentPadding: EdgeInsets.zero,
               title: Text(item.itemName, style: theme.textTheme.bodyLarge),
               subtitle: Text(
-                'Quantity: ${item.quantity} | Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}',
+                'Quantity: ${item.quantity} | Unit Price: KES ${item.unitPrice.toStringAsFixed(2)}',
                 style: theme.textTheme.bodySmall,
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '₦${item.totalValue.toStringAsFixed(2)}',
+                    'KES ${item.totalValue.toStringAsFixed(2)}',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
@@ -609,9 +609,9 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
                       child: TextFormField(
                         controller: priceController,
                         decoration: const InputDecoration(
-                          labelText: 'Unit Price (₦) *',
+                          labelText: 'Unit Price (KES ) *',
                           border: OutlineInputBorder(),
-                          prefixText: '₦ ',
+                          prefixText: 'KES  ',
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [

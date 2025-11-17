@@ -67,7 +67,7 @@ class PrintHistoryScreen extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('₦${e.totalAmount.toStringAsFixed(2)}', style: GoogleFonts.underdog(fontWeight: FontWeight.w700)),
+                              Text('KES ${e.totalAmount.toStringAsFixed(2)}', style: GoogleFonts.underdog(fontWeight: FontWeight.w700)),
                               if (!e.success && e.error != null)
                                 Tooltip(
                                   message: e.error!,
