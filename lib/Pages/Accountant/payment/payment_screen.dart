@@ -434,141 +434,273 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
     );
   }
 
-  // Update the _historyCard method to make payments clickable
+  // Update the _historyCard method to pass the payment object
   Widget _historyCard(List<Payment> payments, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: (isDark ? Colors.white10 : Colors.black12)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Payment History (${payments.length})", 
-               style: GoogleFonts.underdog(fontSize: 17, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView.builder(
-              itemCount: payments.length,
-              itemBuilder: (context, index) {
-                final payment = payments[index];
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: payment.id != null
-                        ? () {
-                            Future.microtask(() => _showPaymentDetail(payment.id!));
-                          }
-                        : null,
+  return Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: (isDark ? Colors.white10 : Colors.black12)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Payment History (${payments.length})", 
+             style: GoogleFonts.underdog(fontSize: 17, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 16),
+        Expanded(
+          child: ListView.builder(
+            itemCount: payments.length,
+            itemBuilder: (context, index) {
+              final payment = payments[index];
+              return Material(
+                color: Colors.transparent,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.05),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      // Main payment info row
+                      InkWell(
+                        onTap: payment.id != null
+                            ? () {
+                                Future.microtask(() => _showPaymentDetail(payment.id!));
+                              }
+                            : null,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                        DateFormat.yMMMd()
-                                            .add_jm()
-                                            .format(payment.paymentDate),
-                                        style: GoogleFonts.underdog(
-                                            fontWeight: FontWeight.w600)),
-                                    Text(payment.paymentMethod,
-                                        style: GoogleFonts.underdog(
-                                            fontSize: 12, color: Colors.grey)),
-                                  ],
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    NumberFormat.currency(symbol: "Ksh")
-                                        .format(payment.amount),
-                                    style: GoogleFonts.underdog(
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.success),
+                                      DateFormat.yMMMd()
+                                          .add_jm()
+                                          .format(payment.paymentDate),
+                                      style: GoogleFonts.underdog(
+                                          fontWeight: FontWeight.w600)),
+                                  Text(payment.paymentMethod,
+                                      style: GoogleFonts.underdog(
+                                          fontSize: 12, color: Colors.grey)),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  NumberFormat.currency(symbol: "Ksh")
+                                      .format(payment.amount),
+                                  style: GoogleFonts.underdog(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.success),
+                                ),
+                                if (payment.status != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _getStatusColor(payment.status!),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      payment.status!,
+                                      style: GoogleFonts.underdog(
+                                          fontSize: 10, color: Colors.white),
+                                    ),
                                   ),
-                                  if (payment.status != null)
-                                    Container(
+                              ],
+                            ),
+                            if (payment.id != null) ...[
+                              const SizedBox(width: 8),
+                              Icon(Icons.arrow_forward_ios,
+                                  size: 16, color: Colors.grey[400]),
+                            ],
+                          ],
+                        ),
+                      ),
+                      
+                      // Terms section
+                      if (payment.terms != null && payment.terms!.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Wrap(
+                            spacing: 4,
+                            runSpacing: 4,
+                            children: payment.terms!
+                                .map((term) => Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: _getStatusColor(payment.status!),
-                                        borderRadius: BorderRadius.circular(4),
+                                        color: AppColors.primary
+                                            .withOpacity(0.1),
+                                        borderRadius:
+                                            BorderRadius.circular(4),
+                                        border: Border.all(
+                                            color: AppColors.primary
+                                                .withOpacity(0.3)),
                                       ),
                                       child: Text(
-                                        payment.status!,
+                                        term,
                                         style: GoogleFonts.underdog(
-                                            fontSize: 10, color: Colors.white),
+                                            fontSize: 10,
+                                            color: AppColors.primary),
                                       ),
-                                    ),
-                                ],
-                              ),
-                              if (payment.id != null) ...[
-                                const SizedBox(width: 8),
-                                Icon(Icons.arrow_forward_ios,
-                                    size: 16, color: Colors.grey[400]),
-                              ],
-                            ],
+                                    ))
+                                .toList(),
                           ),
-                          // Show terms if available
-                          if (payment.terms != null && payment.terms!.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Wrap(
-                                spacing: 4,
-                                runSpacing: 4,
-                                children: payment.terms!
-                                    .map((term) => Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primary
-                                                .withOpacity(0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                            border: Border.all(
-                                                color: AppColors.primary
-                                                    .withOpacity(0.3)),
-                                          ),
-                                          child: Text(
-                                            term,
-                                            style: GoogleFonts.underdog(
-                                                fontSize: 10,
-                                                color: AppColors.primary),
-                                          ),
-                                        ))
-                                    .toList(),
+                        ),
+                      ],
+                      
+                      // Action buttons row - Updated to pass payment object
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: payment.id != null
+                                  ? () => _showPaymentDetail(payment.id!)
+                                  : null,
+                              icon: const Icon(Icons.visibility, size: 16),
+                              label: Text(
+                                'View Details',
+                                style: GoogleFonts.underdog(fontSize: 12),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
                               ),
                             ),
-                          ],
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildCompactPrintButton(payment), // Pass payment object
+                          ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Update the _printReceipt method to use transactionId
+void _printReceipt(String? paymentId) {
+  if (paymentId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('No payment ID available for printing')),
     );
+    return;
   }
 
+  // Get the current payments state
+  final paymentsAsync = ref.read(studentPreviousPaymentsProvider(widget.student.id));
+  
+  paymentsAsync.when(
+    data: (payments) {
+      try {
+        final payment = payments.firstWhere(
+          (p) => p.id == paymentId,
+          orElse: () => throw Exception('Payment not found'),
+        );
+        
+        if (payment.transactionId != null && payment.transactionId!.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ThermalReceiptPreviewScreen(
+                transactionId: payment.transactionId!,
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No transaction ID available for this payment')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error finding payment: $e')),
+        );
+      }
+    },
+    loading: () {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Loading payment data...')),
+      );
+    },
+    error: (error, stackTrace) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading payments: $error')),
+      );
+    },
+  );
+}
+
+// Update the compact print button to pass the full payment instead of just the ID
+Widget _buildCompactPrintButton(Payment payment) {
+  return ElevatedButton.icon(
+    onPressed: payment.transactionId != null && payment.transactionId!.isNotEmpty 
+        ? () => _printReceiptWithTransaction(payment.transactionId!)
+        : null,
+    icon: const Icon(Icons.print, size: 16),
+    label: Text(
+      'Print',
+      style: GoogleFonts.underdog(fontSize: 12),
+    ),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.secondary,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+      ),
+    ),
+  );
+}
+
+// Add a direct method that uses transactionId
+void _printReceiptWithTransaction(String transactionId) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ThermalReceiptPreviewScreen(
+        transactionId: transactionId,
+      ),
+    ),
+  );
+}
+
+// Update the _buildPrintReceiptButton method to also use transactionId
+Widget _buildPrintReceiptButton(Payment payment) {
+  return ElevatedButton.icon(
+    onPressed: payment.transactionId != null && payment.transactionId!.isNotEmpty 
+        ? () => _printReceiptWithTransaction(payment.transactionId!)
+        : null,
+    icon: const Icon(Icons.print),
+    label: const Text('Print Receipt'),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.secondary,
+      foregroundColor: Colors.white,
+    ),
+  );
+}
   // Add method to show payment detail modal
   void _showPaymentDetail(String paymentId) {
     if (!mounted) return;
@@ -949,263 +1081,265 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
 
 void _showAllPayments(List<Payment> payments, bool isDark) {
   // Use a longer delay to avoid mouse tracker conflicts
-  Future.delayed(const Duration(milliseconds: 150), () {
+  Future.delayed(const Duration(milliseconds: 150), () async {
     if (!mounted) return;
     
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext dialogContext) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            minWidth: 300,
-            maxWidth: 600,
-            minHeight: 200,
-            maxHeight: 500,
-          ),
-          child: Container(
-            width: 600,
-            height: 500,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+    try {
+      await showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext dialogContext) => Dialog(
+          backgroundColor: Colors.transparent,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: 300,
+              maxWidth: 600,
+              minHeight: 200,
+              maxHeight: 500,
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Header Row
-                    Row(
-                      children: [
-                        Text(
-                          "Complete Payment History",
-                          style: GoogleFonts.underdog(
-                            fontSize: 18, 
-                            fontWeight: FontWeight.w700,
+            child: Container(
+              width: 600,
+              height: 500,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header Row
+                      Row(
+                        children: [
+                          Text(
+                            "Complete Payment History",
+                            style: GoogleFonts.underdog(
+                              fontSize: 18, 
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        const Spacer(),
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              if (Navigator.of(dialogContext).canPop()) {
-                                Navigator.of(dialogContext).pop();
-                              }
-                            },
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                Icons.close,
-                                color: isDark ? Colors.white : Colors.black,
-                                size: 20,
+                          const Spacer(),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                if (Navigator.of(dialogContext).canPop()) {
+                                  Navigator.of(dialogContext).pop();
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.close,
+                                  color: isDark ? Colors.white : Colors.black,
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Content
-                    Expanded(
-                      child: payments.isEmpty 
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.payment_outlined,
-                                  size: 48,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  "No payment history available",
-                                  style: GoogleFonts.underdog(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Content
+                      Expanded(
+                        child: payments.isEmpty 
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.payment_outlined,
+                                    size: 48,
+                                    color: Colors.grey[400],
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: payments.length,
-                            itemBuilder: (context, index) {
-                              final payment = payments[index];
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: payment.id != null
-                                        ? () {
-                                            if (Navigator.of(dialogContext).canPop()) {
-                                              Navigator.of(dialogContext).pop();
-                                            }
-                                            // Use a delay before showing the next dialog
-                                            Future.delayed(const Duration(milliseconds: 100), () {
-                                              if (mounted) {
-                                                _showPaymentDetail(payment.id!);
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    "No payment history available",
+                                    style: GoogleFonts.underdog(
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: payments.length,
+                              itemBuilder: (context, index) {
+                                final payment = payments[index];
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: payment.id != null
+                                          ? () {
+                                              if (Navigator.of(dialogContext).canPop()) {
+                                                Navigator.of(dialogContext).pop();
                                               }
-                                            });
-                                          }
-                                        : null,
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primary.withOpacity(0.05),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: AppColors.primary.withOpacity(0.2),
+                                              // Use a delay before showing the next dialog
+                                              Future.delayed(const Duration(milliseconds: 100), () {
+                                                if (mounted) {
+                                                  _showPaymentDetail(payment.id!);
+                                                }
+                                              });
+                                            }
+                                          : null,
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary.withOpacity(0.05),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: AppColors.primary.withOpacity(0.2),
+                                          ),
                                         ),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      DateFormat.yMMMd().add_jm().format(payment.paymentDate),
-                                                      style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      payment.paymentMethod,
-                                                      style: GoogleFonts.underdog(
-                                                        fontSize: 12, 
-                                                        color: Colors.grey[600],
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        DateFormat.yMMMd().add_jm().format(payment.paymentDate),
+                                                        style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: [
-                                                  Text(
-                                                    NumberFormat.currency(symbol: "Ksh ").format(payment.amount),
-                                                    style: GoogleFonts.underdog(
-                                                      fontWeight: FontWeight.w700, 
-                                                      color: AppColors.success,
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  if (payment.status != null)
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(
-                                                        horizontal: 8, 
-                                                        vertical: 2,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: _getStatusColor(payment.status!),
-                                                        borderRadius: BorderRadius.circular(12),
-                                                      ),
-                                                      child: Text(
-                                                        payment.status!.toUpperCase(),
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        payment.paymentMethod,
                                                         style: GoogleFonts.underdog(
-                                                          fontSize: 9, 
-                                                          color: Colors.white,
-                                                          fontWeight: FontWeight.w600,
+                                                          fontSize: 12, 
+                                                          color: Colors.grey[600],
                                                         ),
                                                       ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                                  children: [
+                                                    Text(
+                                                      NumberFormat.currency(symbol: "Ksh ").format(payment.amount),
+                                                      style: GoogleFonts.underdog(
+                                                        fontWeight: FontWeight.w700, 
+                                                        color: AppColors.success,
+                                                        fontSize: 14,
+                                                      ),
                                                     ),
+                                                    const SizedBox(height: 4),
+                                                    if (payment.status != null)
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(
+                                                          horizontal: 8, 
+                                                          vertical: 2,
+                                                        ),
+                                                        decoration: BoxDecoration(
+                                                          color: _getStatusColor(payment.status!),
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        child: Text(
+                                                          payment.status!.toUpperCase(),
+                                                          style: GoogleFonts.underdog(
+                                                            fontSize: 9, 
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                                if (payment.id != null) ...[
+                                                  const SizedBox(width: 12),
+                                                  Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    size: 14,
+                                                    color: Colors.grey[400],
+                                                  ),
                                                 ],
-                                              ),
-                                              if (payment.id != null) ...[
-                                                const SizedBox(width: 12),
-                                                Icon(
-                                                  Icons.arrow_forward_ios,
-                                                  size: 14,
-                                                  color: Colors.grey[400],
-                                                ),
                                               ],
-                                            ],
-                                          ),
-                                          
-                                          // Terms section
-                                          if (payment.terms != null && payment.terms!.isNotEmpty) ...[
-                                            const SizedBox(height: 8),
-                                            Wrap(
-                                              spacing: 4,
-                                              runSpacing: 4,
-                                              children: payment.terms!.take(3).map((term) => Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 6, 
-                                                  vertical: 2,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.primary.withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(4),
-                                                  border: Border.all(
-                                                    color: AppColors.primary.withOpacity(0.3),
-                                                    width: 0.5,
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  term,
-                                                  style: GoogleFonts.underdog(
-                                                    fontSize: 9, 
-                                                    color: AppColors.primary,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              )).toList(),
                                             ),
-                                            if (payment.terms!.length > 3)
-                                              Padding(
-                                                padding: const EdgeInsets.only(top: 4),
-                                                child: Text(
-                                                  "+${payment.terms!.length - 3} more",
-                                                  style: GoogleFonts.underdog(
-                                                    fontSize: 10,
-                                                    color: Colors.grey[600],
-                                                    fontStyle: FontStyle.italic,
+                                            
+                                            // Terms section
+                                            if (payment.terms != null && payment.terms!.isNotEmpty) ...[
+                                              const SizedBox(height: 8),
+                                              Wrap(
+                                                spacing: 4,
+                                                runSpacing: 4,
+                                                children: payment.terms!.take(3).map((term) => Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                    horizontal: 6, 
+                                                    vertical: 2,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.primary.withOpacity(0.1),
+                                                    borderRadius: BorderRadius.circular(4),
+                                                    border: Border.all(
+                                                      color: AppColors.primary.withOpacity(0.3),
+                                                      width: 0.5,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    term,
+                                                    style: GoogleFonts.underdog(
+                                                      fontSize: 9, 
+                                                      color: AppColors.primary,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                )).toList(),
+                                              ),
+                                              if (payment.terms!.length > 3)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(top: 4),
+                                                  child: Text(
+                                                    "+${payment.terms!.length - 3} more",
+                                                    style: GoogleFonts.underdog(
+                                                      fontSize: 10,
+                                                      color: Colors.grey[600],
+                                                      fontStyle: FontStyle.italic,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
+                                            ],
                                           ],
-                                        ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                    ),
-                  ],
+                                );
+                              },
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    ).catchError((error) {
+      );
+    } catch (error) {
       print('Error showing payment history dialog: $error');
       // Show a simple snackbar if dialog fails
       if (mounted) {
@@ -1219,7 +1353,7 @@ void _showAllPayments(List<Payment> payments, bool isDark) {
           ),
         );
       }
-    });
+    }
   });
 }
 
@@ -1261,36 +1395,6 @@ void _showAllPayments(List<Payment> payments, bool isDark) {
     ),
     child: Center(child: Text("Error: $error", style: GoogleFonts.underdog(color: AppColors.error))),
   );
-
-  // Add this method to your existing payment_screen.dart
-  void _printReceipt(String? paymentId) {
-    if (paymentId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No payments ID available for printing')),
-      );
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ThermalReceiptPreviewScreen(transactionId: paymentId),
-      ),
-    );
-  }
-
-  // Add this button to your payment success UI or payment history items
-  Widget _buildPrintReceiptButton(String? paymentId) {
-    return ElevatedButton.icon(
-      onPressed: paymentId != null ? () => _printReceipt(paymentId) : null,
-      icon: const Icon(Icons.print),
-      label: const Text('Print Receipt'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.secondary,
-        foregroundColor: Colors.white,
-      ),
-    );
-  }
 }
 
 enum PaymentView { payment, arrears, previous }

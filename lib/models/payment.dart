@@ -1,5 +1,6 @@
 class Payment {
   final String? id;
+  final String? transactionId;
   final String studentId;
   final String? studentName; // New field for payment history
   final double amount;
@@ -11,6 +12,7 @@ class Payment {
 
   Payment({
     this.id,
+    this.transactionId,
     required this.studentId,
     this.studentName,
     required this.amount,
@@ -24,6 +26,7 @@ class Payment {
   factory Payment.fromJson(Map<String, dynamic> json) {
     return Payment(
       id: json['id'],
+      transactionId: json['transactionId'],
       studentId: json['studentId'] ?? '',
       studentName: json['studentName'], // New field
       amount: (json['amount'] ?? 0).toDouble(),
