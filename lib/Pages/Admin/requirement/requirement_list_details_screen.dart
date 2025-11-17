@@ -219,7 +219,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 _buildInfoChip(
                   context,
-                  'Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}',
+                  'Unit Price: KES ${item.unitPrice.toStringAsFixed(2)}',
                   Icons.attach_money,
                 ),
               ],
@@ -235,7 +235,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Total: ₦${item.totalPrice.toStringAsFixed(2)}',
+                    'Total: KES ${item.totalPrice.toStringAsFixed(2)}',
                     style: TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
@@ -359,9 +359,9 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                   TextFormField(
                     controller: unitPriceController,
                     decoration: const InputDecoration(
-                      labelText: 'Unit Price (₦) *',
+                      labelText: 'Unit Price (KES ) *',
                       border: OutlineInputBorder(),
-                      prefixText: '₦ ',
+                      prefixText: 'KES  ',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
@@ -410,7 +410,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                                 const Icon(Icons.calculate, color: AppColors.primary),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Total Cost: ₦${total.toStringAsFixed(2)}',
+                                  'Total Cost: KES ${total.toStringAsFixed(2)}',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primary,
@@ -554,9 +554,9 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                   TextFormField(
                     controller: unitPriceController,
                     decoration: const InputDecoration(
-                      labelText: 'Unit Price (₦) *',
+                      labelText: 'Unit Price (KES ) *',
                       border: OutlineInputBorder(),
-                      prefixText: '₦ ',
+                      prefixText: 'KES  ',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [

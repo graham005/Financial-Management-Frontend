@@ -323,7 +323,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                   Expanded(
                     child: _buildInfoItem(
                       'Total Value',
-                      '₦${requirement.totalValue.toStringAsFixed(2)}',
+                      'KES ${requirement.totalValue.toStringAsFixed(2)}',
                       Icons.account_balance_wallet,
                       theme,
                     ),
@@ -331,7 +331,7 @@ class _StudentRequirementsScreenState extends ConsumerState<StudentRequirementsS
                   Expanded(
                     child: _buildInfoItem(
                       'Outstanding',
-                      '₦${requirement.outstandingValue.toStringAsFixed(2)}',
+                      'KES ${requirement.outstandingValue.toStringAsFixed(2)}',
                       Icons.pending,
                       theme,
                     ),
@@ -672,7 +672,7 @@ class _AssignRequirementDialogState extends ConsumerState<_AssignRequirementDial
               
               return CheckboxListTile(
                 title: Text(item.itemName),
-                subtitle: Text('${item.requiredQuantity} ${item.unit} - ₦${item.unitPrice.toStringAsFixed(2)} each'),
+                subtitle: Text('${item.requiredQuantity} ${item.unit} - KES ${item.unitPrice.toStringAsFixed(2)} each'),
                 value: isSelected,
                 onChanged: (bool? value) {
                   setState(() {
@@ -906,7 +906,7 @@ class _BulkAssignDialogState extends ConsumerState<_BulkAssignDialog> {
                     dense: true,
                     title: Text(item.itemName, style: const TextStyle(fontSize: 14)),
                     subtitle: Text(
-                      '${item.requiredQuantity} ${item.unit} - ₦${item.unitPrice.toStringAsFixed(2)}',
+                      '${item.requiredQuantity} ${item.unit} - KES ${item.unitPrice.toStringAsFixed(2)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                     value: isSelected,
@@ -1245,7 +1245,7 @@ class _RequirementListsDebugDialog extends ConsumerWidget {
                                   const SizedBox(height: 4),
                                   Text('ID: ${item.id}'),
                                   Text('Required Quantity: ${item.requiredQuantity} ${item.unit}'),
-                                  Text('Unit Price: ₦${item.unitPrice.toStringAsFixed(2)}'),
+                                  Text('Unit Price: KES ${item.unitPrice.toStringAsFixed(2)}'),
                                   if (item.description != null && item.description!.isNotEmpty)
                                     Text('Description: ${item.description}'),
                                 ],

@@ -141,7 +141,7 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
               Expanded(
                 child: _buildSummaryItem(
                   'Total Value',
-                  '₦${requirement.totalValue.toStringAsFixed(2)}',
+                  'KES ${requirement.totalValue.toStringAsFixed(2)}',
                   Icons.account_balance_wallet,
                   AppColors.primary,
                   theme,
@@ -150,7 +150,7 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
               Expanded(
                 child: _buildSummaryItem(
                   'Outstanding',
-                  '₦${requirement.outstandingValue.toStringAsFixed(2)}',
+                  'KES ${requirement.outstandingValue.toStringAsFixed(2)}',
                   Icons.pending,
                   Colors.orange,
                   theme,
@@ -322,7 +322,7 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      '₦${status.outstandingValue.toStringAsFixed(2)}',
+                      'KES ${status.outstandingValue.toStringAsFixed(2)}',
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.orange,
