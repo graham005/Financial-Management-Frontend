@@ -25,19 +25,98 @@ class ThermalReceipt {
 
   factory ThermalReceipt.fromJson(Map<String, dynamic> json) {
     return ThermalReceipt(
-      receiptId: json['receiptId'] ?? '',
-      receiptNumber: json['receiptNumber'] ?? '',
-      receiptDate: DateTime.parse(json['receiptDate'] ?? DateTime.now().toIso8601String()),
-      staffMember: json['staffMember'] ?? '',
-      organization: OrganizationDetails.fromJson(json['organization'] ?? {}),
-      student: StudentDetails.fromJson(json['student'] ?? {}),
-      items: (json['items'] as List<dynamic>?)
-          ?.map((item) => ReceiptItem.fromJson(item))
-          .toList() ?? [],
-      totals: ReceiptTotals.fromJson(json['totals'] ?? {}),
-      payment: PaymentDetails.fromJson(json['payment'] ?? {}),
-      footerMessage: json['footerMessage'],
+      receiptId: _toString(json['receiptId']),
+      receiptNumber: _toString(json['receiptNumber']),
+      receiptDate: _parseDateTime(json['receiptDate']),
+      staffMember: _toString(json['staffMember']),
+      organization: OrganizationDetails.fromJson(_toMap(json['organization'])),
+      student: StudentDetails.fromJson(_toMap(json['student'])),
+      items: _parseItems(json['items']),
+      totals: ReceiptTotals.fromJson(_toMap(json['totals'])),
+      payment: PaymentDetails.fromJson(_toMap(json['payment'])),
+      footerMessage: json['footerMessage']?.toString(),
     );
+  }
+
+  // Helper methods for safe type conversion
+  static String _toString(dynamic value) {
+    if (value == null) return '';
+    return value.toString();
+  }
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is String) {
+      return DateTime.tryParse(value) ?? DateTime.now();
+    }
+    return DateTime.now();
+  }
+
+  static Map<String, dynamic> _toMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    // If backend wrapped as list with single map item, unwrap first
+    if (value is List && value.isNotEmpty) {
+      final first = value.first;
+      if (first is Map<String, dynamic>) return first;
+      if (first is Map) return Map<String, dynamic>.from(first);
+    }
+    return <String, dynamic>{};
+  }
+
+  static List<ReceiptItem> _parseItems(dynamic value) {
+    if (value == null) return [];
+
+    List<dynamic>? list;
+
+    // Direct list
+    if (value is List) {
+      list = value;
+    }
+
+    // Wrapped in a map or special $values field
+    if (value is Map) {
+      final map = Map<String, dynamic>.from(value);
+      final candidates = [
+        map['items'],
+        map['data'],
+        map['results'],
+        map['value'],
+        map['records'],
+        map[r'$values'],
+      ];
+
+      for (final candidate in candidates) {
+        if (candidate is List) {
+          list = candidate;
+          break;
+        }
+        if (candidate is Map && candidate[r'$values'] is List) {
+          list = candidate[r'$values'] as List;
+          break;
+        }
+      }
+    }
+
+    if (list == null) return [];
+
+    return list
+        .where((item) => item != null)
+        .map((item) {
+          try {
+            if (item is Map<String, dynamic>) {
+              return ReceiptItem.fromJson(item);
+            } else if (item is Map) {
+              return ReceiptItem.fromJson(Map<String, dynamic>.from(item));
+            }
+            return null;
+          } catch (e) {
+            // print('Error parsing receipt item: $e');
+            return null;
+          }
+        })
+        .whereType<ReceiptItem>()
+        .toList();
   }
 
   Map<String, dynamic> toJson() {
@@ -73,12 +152,17 @@ class OrganizationDetails {
 
   factory OrganizationDetails.fromJson(Map<String, dynamic> json) {
     return OrganizationDetails(
-      name: json['name'] ?? '',
-      address: json['address'] ?? '',
-      phone: json['phone'] ?? '',
-      email: json['email'] ?? '',
-      logo: json['logo'],
+      name: _toString(json['name']),
+      address: _toString(json['address']),
+      phone: _toString(json['phone']),
+      email: _toString(json['email']),
+      logo: json['logo']?.toString(),
     );
+  }
+
+  static String _toString(dynamic value) {
+    if (value == null) return '';
+    return value.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -109,12 +193,17 @@ class StudentDetails {
 
   factory StudentDetails.fromJson(Map<String, dynamic> json) {
     return StudentDetails(
-      studentName: json['studentName'] ?? '',
-      admissionNumber: json['admissionNumber'] ?? '',
-      grade: json['grade'] ?? '',
-      parentName: json['parentName'] ?? '',
-      parentPhone: json['parentPhone'] ?? '',
+      studentName: _toString(json['studentName']),
+      admissionNumber: _toString(json['admissionNumber']),
+      grade: _toString(json['grade']),
+      parentName: _toString(json['parentName']),
+      parentPhone: _toString(json['parentPhone']),
     );
+  }
+
+  static String _toString(dynamic value) {
+    if (value == null) return '';
+    return value.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -145,12 +234,33 @@ class ReceiptItem {
 
   factory ReceiptItem.fromJson(Map<String, dynamic> json) {
     return ReceiptItem(
-      description: json['description'] ?? '',
-      quantity: json['quantity'] ?? 1,
-      unitPrice: (json['unitPrice'] ?? 0).toDouble(),
-      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
-      itemType: json['itemType'],
+      description: _toString(json['description']),
+      quantity: _toInt(json['quantity']),
+      unitPrice: _toDouble(json['unitPrice']),
+      totalAmount: _toDouble(json['totalAmount']),
+      itemType: json['itemType']?.toString(),
     );
+  }
+
+  static String _toString(dynamic value) {
+    if (value == null) return '';
+    return value.toString();
+  }
+
+  static int _toInt(dynamic value) {
+    if (value == null) return 1;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 1;
+    return 1;
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 
   Map<String, dynamic> toJson() {
@@ -179,11 +289,19 @@ class ReceiptTotals {
 
   factory ReceiptTotals.fromJson(Map<String, dynamic> json) {
     return ReceiptTotals(
-      subtotal: (json['subtotal'] ?? 0).toDouble(),
-      discountAmount: (json['discountAmount'] ?? 0).toDouble(),
-      taxAmount: (json['taxAmount'] ?? 0).toDouble(),
-      grandTotal: (json['grandTotal'] ?? 0).toDouble(),
+      subtotal: _toDouble(json['subtotal']),
+      discountAmount: _toDouble(json['discountAmount']),
+      taxAmount: _toDouble(json['taxAmount']),
+      grandTotal: _toDouble(json['grandTotal']),
     );
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 
   Map<String, dynamic> toJson() {
@@ -213,12 +331,33 @@ class PaymentDetails {
 
   factory PaymentDetails.fromJson(Map<String, dynamic> json) {
     return PaymentDetails(
-      paymentMethod: json['paymentMethod'] ?? '',
-      transactionReference: json['transactionReference'],
-      paymentDate: DateTime.parse(json['paymentDate'] ?? DateTime.now().toIso8601String()),
-      amountReceived: (json['amountReceived'] ?? 0).toDouble(),
-      changeAmount: (json['changeAmount'] ?? 0).toDouble(),
+      paymentMethod: _toString(json['paymentMethod']),
+      transactionReference: json['transactionReference']?.toString(),
+      paymentDate: _parseDateTime(json['paymentDate']),
+      amountReceived: _toDouble(json['amountReceived']),
+      changeAmount: _toDouble(json['changeAmount']),
     );
+  }
+
+  static String _toString(dynamic value) {
+    if (value == null) return '';
+    return value.toString();
+  }
+
+  static DateTime _parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is String) {
+      return DateTime.tryParse(value) ?? DateTime.now();
+    }
+    return DateTime.now();
+  }
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 
   Map<String, dynamic> toJson() {

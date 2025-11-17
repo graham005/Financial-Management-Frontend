@@ -450,7 +450,7 @@ class ThermalPrinterService {
           PosColumn(text: _truncateText(item.description, 20), width: 6),
           PosColumn(text: item.quantity.toString(), width: 2),
           PosColumn(
-            text: '₦${item.totalAmount.toStringAsFixed(2)}',
+            text: 'KES ${item.totalAmount.toStringAsFixed(2)}',
             width: 4,
             styles: const PosStyles(align: PosAlign.right),
           ),
@@ -460,7 +460,7 @@ class ThermalPrinterService {
         bytes += generator.row([
           PosColumn(text: '${item.quantity}x', width: 4),
           PosColumn(
-            text: '₦${item.totalAmount.toStringAsFixed(2)}',
+            text: 'KES ${item.totalAmount.toStringAsFixed(2)}',
             width: 8,
             styles: const PosStyles(align: PosAlign.right),
           ),
@@ -475,7 +475,7 @@ class ThermalPrinterService {
       bytes += generator.row([
         PosColumn(text: 'Subtotal:', width: 8),
         PosColumn(
-          text: '₦${receipt.totals.subtotal.toStringAsFixed(2)}',
+          text: 'KES ${receipt.totals.subtotal.toStringAsFixed(2)}',
           width: 4,
           styles: const PosStyles(align: PosAlign.right),
         ),
@@ -484,7 +484,7 @@ class ThermalPrinterService {
       bytes += generator.row([
         PosColumn(text: 'Discount:', width: 8),
         PosColumn(
-          text: '-₦${receipt.totals.discountAmount.toStringAsFixed(2)}',
+          text: '-KES ${receipt.totals.discountAmount.toStringAsFixed(2)}',
           width: 4,
           styles: const PosStyles(align: PosAlign.right),
         ),
@@ -495,7 +495,7 @@ class ThermalPrinterService {
       bytes += generator.row([
         PosColumn(text: 'Tax:', width: 8),
         PosColumn(
-          text: '₦${receipt.totals.taxAmount.toStringAsFixed(2)}',
+          text: 'KES ${receipt.totals.taxAmount.toStringAsFixed(2)}',
           width: 4,
           styles: const PosStyles(align: PosAlign.right),
         ),
@@ -507,7 +507,7 @@ class ThermalPrinterService {
     bytes += generator.row([
       PosColumn(text: 'TOTAL:', width: 8, styles: const PosStyles(bold: true)),
       PosColumn(
-        text: '₦${receipt.totals.grandTotal.toStringAsFixed(2)}',
+        text: 'KES ${receipt.totals.grandTotal.toStringAsFixed(2)}',
         width: 4,
         styles: const PosStyles(align: PosAlign.right, bold: true),
       ),
@@ -535,13 +535,13 @@ class ThermalPrinterService {
     
     bytes += generator.row([
       PosColumn(text: 'Amount Received:', width: 6),
-      PosColumn(text: '₦${receipt.payment.amountReceived.toStringAsFixed(2)}', width: 6),
+      PosColumn(text: 'KES ${receipt.payment.amountReceived.toStringAsFixed(2)}', width: 6),
     ]);
     
     if (receipt.payment.changeAmount > 0) {
       bytes += generator.row([
         PosColumn(text: 'Change:', width: 6),
-        PosColumn(text: '₦${receipt.payment.changeAmount.toStringAsFixed(2)}', width: 6),
+        PosColumn(text: 'KES ${receipt.payment.changeAmount.toStringAsFixed(2)}', width: 6),
       ]);
     }
     

@@ -142,8 +142,13 @@ final printerStatusProvider = StreamProvider<PrinterStatus>((ref) {
 
 // Print operation providers
 final printReceiptProvider = FutureProvider.family<bool, ThermalReceipt>((ref, receipt) async {
-  final service = ref.watch(thermalPrinterServiceProvider);
-  return service.printReceipt(receipt);
+  try {
+    final service = ref.watch(thermalPrinterServiceProvider);
+    return await service.printReceipt(receipt);
+  } catch (e) {
+    print('Print receipt provider error: $e');
+    throw Exception('Print failed: $e');
+  }
 });
 
 final testPrintProvider = FutureProvider<bool>((ref) async {
