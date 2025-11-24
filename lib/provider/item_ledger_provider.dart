@@ -1,8 +1,10 @@
+import 'package:finance_management_frontend/models/requirement_transaction_detail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/requirement_list.dart';
 import '../models/requirement_item.dart';
 import '../models/student_requirement.dart';
 import '../models/item_transaction.dart';
+import '../models/requirement_transaction_history_entry.dart';
 import '../services/item_ledger_service.dart';
 
 // Service Provider
@@ -281,30 +283,33 @@ class StudentRequirementNotifier extends StateNotifier<StudentRequirementState> 
     }
   }
 
-  Future<bool> recordTransaction({
+  Future<String?> recordTransaction({
     required String studentRequirementId,
     required String transactionType,
     double? monetaryAmount,
     required List<TransactionItem> items,
     String? notes,
     Map<String, String>? perItemNotes,
-    Map<String, double>? perItemMoney, // NEW
+    Map<String, double>? perItemMoney,
   }) async {
     try {
-      await _service.recordTransaction(
+      final transaction = await _service.recordTransaction(
         studentRequirementId: studentRequirementId,
         transactionType: transactionType,
         monetaryAmount: monetaryAmount,
         items: items,
         notes: notes,
         perItemNotes: perItemNotes,
-        perItemMoney: perItemMoney, // NEW
+        perItemMoney: perItemMoney,
       );
+      
       await loadStudentRequirements();
-      return true;
+      
+      // Return the transaction ID so it can be used for receipt printing
+      return transaction.id;
     } catch (e) {
       state = state.copyWith(error: e.toString());
-      return false;
+      return null;
     }
   }
 }
@@ -336,6 +341,17 @@ final recordTransactionProvider = FutureProvider.family<ItemTransaction, Map<Str
     items: params['items'] as List<TransactionItem>,
     notes: params['notes'],
     perItemNotes: params['perItemNotes'] as Map<String, String>?,
-    perItemMoney: params['perItemMoney'] as Map<String, double>?, // NEW
+    perItemMoney: params['perItemMoney'] as Map<String, double>?,
   );
+});
+
+// NEW: Requirement transaction history provider
+final requirementTransactionHistoryProvider = FutureProvider.family<List<RequirementTransactionHistoryEntry>, String>((ref, studentRequirementId) async {
+  final service = ref.watch(itemLedgerServiceProvider);
+  return service.getRequirementTransactions(studentRequirementId);
+});
+
+final requirementTransactionDetailProvider = FutureProvider.family<RequirementTransactionDetail, String>((ref, transactionId) async {
+  final service = ref.watch(itemLedgerServiceProvider);
+  return service.getTransactionDetail(transactionId);
 });
