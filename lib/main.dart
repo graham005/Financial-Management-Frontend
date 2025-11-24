@@ -2,6 +2,7 @@
 import 'package:finance_management_frontend/Pages/Accountant/accountant_dashboard.dart';
 import 'package:finance_management_frontend/Pages/Admin/grades_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_list_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_transaction_history_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/student_requirements_screen.dart';
 import 'Pages/Accountant/fee_structure_display_screen.dart';
 import 'Pages/Accountant/print_history_screen.dart';
@@ -115,6 +116,16 @@ class MyApp extends ConsumerWidget {
             currentRoute: '/student-requirement-details',
             child: StudentRequirementDetailsScreen(
                 studentRequirementId: studentRequirementId),
+          );
+        },
+        "/requirement-transaction-history": (context) {
+          final studentRequirementId =
+              ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          return SideNavLayout(
+            currentRoute: '/requirement-transaction-history',
+            child: RequirementTransactionHistoryScreen(
+              studentRequirementId: studentRequirementId,
+            ),
           );
         },
         "/record-transaction": (context) {
