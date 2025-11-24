@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:finance_management_frontend/models/requirement_transaction_detail.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/requirement_list.dart';
 import '../models/requirement_item.dart';
 import '../models/student_requirement.dart';
 import '../models/item_transaction.dart';
+import '../models/requirement_transaction_history_entry.dart';
 
 class ItemLedgerService {
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
@@ -358,6 +360,45 @@ class ItemLedgerService {
       throw Exception('Failed to record transaction (${status ?? 'unknown'}): ${server ?? e.message}');
     } catch (e) {
       throw Exception('Failed to record transaction: $e');
+    }
+  }
+
+  Future<List<RequirementTransactionHistoryEntry>> getRequirementTransactions(String studentRequirementId) async {
+    try {
+      await _setAuthHeaders();
+      final resp = await _dio.get('/ItemLedger/student-requirements/$studentRequirementId/transactions');
+      print('Response data: ${resp.data}');
+      if (resp.data is List) {
+        final list = (resp.data as List)
+            .where((e) => e != null)
+            .map((e) => RequirementTransactionHistoryEntry.fromJson(e as Map<String, dynamic>))
+            .toList();
+        list.sort((a, b) => b.transactionDate.compareTo(a.transactionDate)); // newest first
+        return list;
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load requirement transactions: $e');
+    }
+  }
+
+  Future<RequirementTransactionDetail> getTransactionDetail(String id) async {
+    try {
+      await _setAuthHeaders();
+      final resp = await _dio.get('/ItemLedger/transactions/$id');
+      if (resp.data is List) {
+        final list = resp.data as List;
+        if (list.isEmpty) {
+          throw Exception('Transaction not found');
+        }
+        return RequirementTransactionDetail.fromJson(Map<String, dynamic>.from(list.first));
+      } else {
+        return RequirementTransactionDetail.fromJson(Map<String, dynamic>.from(resp.data));
+      }
+    } on DioException catch (e) {
+      throw Exception('Failed to load transaction: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      throw Exception('Failed to load transaction: $e');
     }
   }
 }

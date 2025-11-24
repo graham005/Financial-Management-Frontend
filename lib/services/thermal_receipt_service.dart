@@ -136,12 +136,12 @@ class ThermalReceiptService {
       final body = data['body'] as Map<String, dynamic>? ?? {};
       final footer = data['footer'] as Map<String, dynamic>? ?? {};
       
-      // Extract header information
-      final orgName = header['organizationName']?.toString() ?? 'Destiny Junior Academy';
+      // Extract header information (no hardcoded fallbacks)
+      final orgName = header['organizationName']?.toString() ?? '';
       final orgAddress = header['organizationAddress']?.toString() ?? '';
       final orgPhone = header['organizationPhone']?.toString() ?? '';
-      final orgEmail = header['organizationEmail']?.toString() ?? '';
-      final receiptNumber = header['receiptNumber']?.toString() ?? 'UNKNOWN';
+      final receiptTitle = header['receiptTitle']?.toString();
+      final receiptNumber = header['receiptNumber']?.toString() ?? '';
       final issuedDate = _parseDateTime(header['issuedDate']) ?? DateTime.now();
       
       // Extract customer (student) information
@@ -181,45 +181,39 @@ class ThermalReceiptService {
       final paymentMethod = transaction['paymentMethod']?.toString() ?? 'Cash';
       final transactionDate = _parseDateTime(transaction['transactionDate']) ?? DateTime.now();
       final processedBy = transaction['processedBy']?.toString() ?? 'System';
-      final term = transaction['term']?.toString() ?? '';
-      final year = transaction['year']?.toString() ?? '';
-      
-      // Build footer message
-      final thankYouMessage = footer['thankYouMessage']?.toString() ?? 'Thank you for your payment!';
-      final contactInfo = footer['contactInfo']?.toString() ?? '';
-      final additionalNotes = footer['additionalNotes'] as List? ?? [];
-      
-      String footerMessage = thankYouMessage;
-      if (contactInfo.isNotEmpty) {
-        footerMessage += '\n$contactInfo';
-      }
-      if (additionalNotes.isNotEmpty) {
-        footerMessage += '\n${additionalNotes.join('\n')}';
-      }
-      if (term.isNotEmpty && year.isNotEmpty) {
-        footerMessage += '\n$term $year';
-      }
+      final term = transaction['term']?.toString();
+      final year = transaction['year']?.toString();
 
-      print('✅ Successfully parsed new format:');
-      print('   - Receipt Number: $receiptNumber');
-      print('   - Student: $studentName');
-      print('   - Items: ${items.length}');
-      print('   - Total: KES ${grandTotal.toStringAsFixed(2)}');
+      // Footer / notes (do not inject defaults)
+      final thankYouMessage = (footer['thankYouMessage']?.toString() ?? '').trim();
+      final contactInfo = (footer['contactInfo']?.toString() ?? '').trim();
+      final additionalNotes = (footer['additionalNotes'] as List? ?? []).map((e) => e?.toString() ?? '').where((e) => e.isNotEmpty).toList();
+      final signatureLine = (footer['signature']?.toString() ?? '').isNotEmpty
+          ? footer['signature'].toString()
+          : 'Authorized Signature: _______________'; // always show a signature line
+      final parts = <String>[];
+      if (thankYouMessage.isNotEmpty) parts.add(thankYouMessage);
+      if (contactInfo.isNotEmpty) parts.add(contactInfo);
+      if (additionalNotes.isNotEmpty) parts.addAll(additionalNotes);
+      // ALWAYS ensure thank you message at bottom
+      const defaultThanks = 'Thank you for your payment!';
+      if (!parts.any((p) => p.toLowerCase().contains('thank'))) {
+        parts.add(defaultThanks);
+      }
+      final footerMessage = parts.isEmpty ? defaultThanks : parts.join('\n');
 
       return ThermalReceipt(
         receiptId: transactionId,
         receiptNumber: receiptNumber,
         receiptDate: issuedDate,
         staffMember: processedBy,
-        
         organization: OrganizationDetails(
           name: orgName,
           address: orgAddress,
           phone: orgPhone.replaceAll('Tel: ', ''),
-          email: orgEmail,
+          email: '', // internal field removed from print usage
           logo: header['logoBase64']?.toString(),
         ),
-        
         student: StudentDetails(
           studentName: studentName,
           admissionNumber: admissionNumber,
@@ -227,16 +221,13 @@ class ThermalReceiptService {
           parentName: parentName,
           parentPhone: contact,
         ),
-        
         items: items,
-        
         totals: ReceiptTotals(
           subtotal: subTotal,
           discountAmount: discount,
           taxAmount: tax,
           grandTotal: grandTotal,
         ),
-        
         payment: PaymentDetails(
           paymentMethod: paymentMethod,
           transactionReference: transactionId,
@@ -244,8 +235,11 @@ class ThermalReceiptService {
           amountReceived: grandTotal,
           changeAmount: 0.0,
         ),
-        
         footerMessage: footerMessage,
+        term: term,
+        year: year,
+        signatureLine: signatureLine,
+        title: receiptTitle, // NEW
       );
     } catch (e, stack) {
       print('❌ Error parsing new backend format: $e');
@@ -256,42 +250,35 @@ class ThermalReceiptService {
 
   /// Create receipt from transaction data when backend doesn't return proper receipt format
   ThermalReceipt _createReceiptFromTransaction(Map<String, dynamic> data, String transactionId) {
-    print('🏗️ ====== CREATING RECEIPT FROM TRANSACTION ======');
-    print('🏗️ Available data keys: ${data.keys.join(', ')}');
-    
-    // Extract basic transaction info
+    // Use only what exists; no hardcoded organization/footer defaults
     final amount = _parseDouble(data['amount'] ?? data['totalAmount']) ?? 0.0;
-    final paymentMethod = data['paymentMethod'] ?? 'Cash';
+    final paymentMethod = (data['paymentMethod'] ?? '').toString();
     final paymentDate = _parseDateTime(data['paymentDate'] ?? data['transactionDate']) ?? DateTime.now();
-    
-    // Extract student info (might be nested)
-    final studentData = data['student'] ?? {};
-    final studentName = studentData['name'] ?? studentData['studentName'] ?? 'Unknown Student';
-    final admissionNumber = studentData['admissionNumber'] ?? studentData['admNo'] ?? 'N/A';
-    final grade = studentData['grade'] ?? studentData['class'] ?? 'N/A';
-    
-    // Extract fee allocations/items
-    final List<ReceiptItem> items = [];
-    if (data.containsKey('feeAllocations') && data['feeAllocations'] is List) {
-      final allocations = data['feeAllocations'] as List;
-      for (final allocation in allocations) {
-        if (allocation is Map) {
-          final allocationMap = Map<String, dynamic>.from(allocation);
+
+    final studentData = (data['student'] is Map) ? Map<String, dynamic>.from(data['student']) : const {};
+    final studentName = (studentData['name'] ?? studentData['studentName'] ?? '').toString();
+    final admissionNumber = (studentData['admissionNumber'] ?? studentData['admNo'] ?? '').toString();
+    final grade = (studentData['grade'] ?? studentData['class'] ?? '').toString();
+
+    final items = <ReceiptItem>[];
+    if (data['feeAllocations'] is List) {
+      for (final alloc in (data['feeAllocations'] as List)) {
+        if (alloc is Map) {
+          final m = Map<String, dynamic>.from(alloc);
+          final amt = _parseDouble(m['amount']) ?? 0.0;
           items.add(ReceiptItem(
-            description: allocationMap['feeType'] ?? allocationMap['description'] ?? 'School Fee',
+            description: (m['feeType'] ?? m['description'] ?? '').toString(),
             quantity: 1,
-            unitPrice: _parseDouble(allocationMap['amount']) ?? 0.0,
-            totalAmount: _parseDouble(allocationMap['amount']) ?? 0.0,
+            unitPrice: amt,
+            totalAmount: amt,
             itemType: 'fee',
           ));
         }
       }
     }
-    
-    // If no items found, create default item
     if (items.isEmpty && amount > 0) {
       items.add(ReceiptItem(
-        description: 'School Fee Payment',
+        description: 'Payment',
         quantity: 1,
         unitPrice: amount,
         totalAmount: amount,
@@ -299,49 +286,48 @@ class ThermalReceiptService {
       ));
     }
 
-    print('🏗️ Created ${items.length} receipt items');
-    print('🏗️ Total amount: KES ${amount.toStringAsFixed(2)}');
+    // Footer: always include thank you message
+    const defaultThanks = 'Thank you for your payment!';
+    final footerMessage = defaultThanks;
 
     return ThermalReceipt(
       receiptId: transactionId,
-      receiptNumber: data['receiptNumber'] ?? 'REC-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+      receiptNumber: (data['receiptNumber'] ?? '').toString(),
       receiptDate: paymentDate,
-      staffMember: data['staffMember'] ?? data['processedBy'] ?? 'System',
-      
+      staffMember: (data['staffMember'] ?? data['processedBy'] ?? '').toString(),
       organization: OrganizationDetails(
-        name: 'Destiny Junior Academy',
-        address: 'P.O. Box 123, Nairobi, Kenya',
-        phone: '+254 700 000 000',
-        email: 'info@destinyjunior.ac.ke',
+        name: (data['organizationName'] ?? '').toString(),
+        address: (data['organizationAddress'] ?? '').toString(),
+        phone: (data['organizationPhone'] ?? '').toString(),
+        email: '', // do not print email
         logo: null,
       ),
-      
       student: StudentDetails(
         studentName: studentName,
         admissionNumber: admissionNumber,
         grade: grade,
-        parentName: studentData['parentName'] ?? 'N/A',
-        parentPhone: studentData['parentPhone'] ?? 'N/A',
+        parentName: (studentData['parentName'] ?? '').toString(),
+        parentPhone: (studentData['parentPhone'] ?? '').toString(),
       ),
-      
       items: items,
-      
       totals: ReceiptTotals(
         subtotal: amount,
         discountAmount: _parseDouble(data['discountAmount']) ?? 0.0,
         taxAmount: _parseDouble(data['taxAmount']) ?? 0.0,
         grandTotal: amount,
       ),
-      
       payment: PaymentDetails(
         paymentMethod: paymentMethod,
-        transactionReference: data['transactionReference'] ?? data['reference'] ?? transactionId,
+        transactionReference: (data['transactionReference'] ?? data['reference'] ?? transactionId).toString(),
         paymentDate: paymentDate,
         amountReceived: amount,
         changeAmount: 0.0,
       ),
-      
-      footerMessage: 'Thank you for your payment. Keep this receipt for your records.',
+      footerMessage: footerMessage,
+      term: (data['term'] ?? '').toString().isEmpty ? null : data['term'].toString(),
+      year: (data['year']?.toString().isEmpty ?? true) ? null : data['year'].toString(),
+      signatureLine: 'Authorized Signature: _______________', // always show
+      title: (data['receiptTitle'] ?? '').toString().isEmpty ? null : data['receiptTitle'].toString(),
     );
   }
 
