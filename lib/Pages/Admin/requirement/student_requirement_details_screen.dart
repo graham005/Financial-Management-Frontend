@@ -31,6 +31,17 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
             icon: const Icon(Icons.add_circle),
             tooltip: 'Record Transaction',
           ),
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/requirement-transaction-history',
+                arguments: studentRequirementId,
+              );
+            },
+            icon: const Icon(Icons.history),
+            tooltip: 'Transaction History',
+          ),
         ],
       ),
       body: studentRequirementAsync.when(
