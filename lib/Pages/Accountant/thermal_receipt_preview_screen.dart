@@ -146,6 +146,7 @@ class _ThermalReceiptPreviewScreenState extends ConsumerState<ThermalReceiptPrev
   }
 
   Widget _buildReceiptPreview(ThermalReceipt receipt, bool isDark) {
+    final grouped = receipt.groupItems();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -162,32 +163,21 @@ class _ThermalReceiptPreviewScreenState extends ConsumerState<ThermalReceiptPrev
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          _buildReceiptHeader(receipt),
+          _buildSimplifiedHeader(receipt),
           const Divider(thickness: 2),
-          
-          // Receipt Info
-          _buildReceiptInfo(receipt),
+          _buildCoreInfo(receipt),
           const Divider(),
-          
-          // Student Info
-          _buildStudentInfo(receipt.student),
+          _buildStudentBlock(receipt.student, receipt.term, receipt.year),
           const Divider(),
-          
-          // Items
-          _buildItemsSection(receipt.items),
+          _buildGroupedItemsSection(grouped),
           const Divider(),
-          
-          // Totals
           _buildTotalsSection(receipt.totals),
           const Divider(),
-          
-          // Payment Info
-          _buildPaymentInfo(receipt.payment),
-          
-          // Footer
+          _buildPaymentInfo(receipt.payment, processedBy: receipt.staffMember),
+          const Divider(),
+          _buildSignature(receipt.signatureLine),
           if (receipt.footerMessage != null) ...[
-            const Divider(),
+            const SizedBox(height: 8),
             _buildFooter(receipt.footerMessage!),
           ],
         ],
@@ -195,157 +185,138 @@ class _ThermalReceiptPreviewScreenState extends ConsumerState<ThermalReceiptPrev
     );
   }
 
-  Widget _buildReceiptHeader(ThermalReceipt receipt) {
+  Widget _buildSimplifiedHeader(ThermalReceipt r) {
     return Column(
       children: [
-        Text(
-          receipt.organization.name,
-          style: GoogleFonts.underdog(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          receipt.organization.address,
-          style: GoogleFonts.underdog(fontSize: 12),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'Tel: ${receipt.organization.phone}',
-          style: GoogleFonts.underdog(fontSize: 12),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'PAYMENT RECEIPT',
-          style: GoogleFonts.underdog(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        Text(r.organization.name,
+            style: GoogleFonts.underdog(fontSize: 18, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center),
+        if (r.organization.address.isNotEmpty)
+          Text(r.organization.address,
+              style: GoogleFonts.underdog(fontSize: 11),
+              textAlign: TextAlign.center),
+        if (r.organization.phone.isNotEmpty)
+          Text('Tel: ${r.organization.phone}',
+              style: GoogleFonts.underdog(fontSize: 11),
+              textAlign: TextAlign.center),
+        const SizedBox(height: 6),
+        Text('PAYMENT RECEIPT',
+            style: GoogleFonts.underdog(fontSize: 15, fontWeight: FontWeight.bold)),
       ],
     );
   }
 
-  Widget _buildReceiptInfo(ThermalReceipt receipt) {
+  Widget _buildCoreInfo(ThermalReceipt r) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildInfoRow('Receipt No:', receipt.receiptNumber),
-        _buildInfoRow('Date:', DateFormat('dd/MM/yyyy HH:mm').format(receipt.receiptDate)),
-        _buildInfoRow('Staff:', receipt.staffMember),
+        _buildInfoRow('Receipt No:', r.receiptNumber),
+        _buildInfoRow('Date:', DateFormat('dd/MM/yyyy HH:mm').format(r.receiptDate)),
+        if (r.term != null && r.year != null && r.term!.isNotEmpty && r.year!.isNotEmpty)
+          _buildInfoRow('Term / Year:', '${r.term} ${r.year}'),
+        _buildInfoRow('Processed By:', r.staffMember),
       ],
     );
   }
 
-  Widget _buildStudentInfo(StudentDetails student) {
+  Widget _buildStudentBlock(StudentDetails s, String? term, String? year) {
+    final parentCombined = '${s.parentName} • ${s.parentPhone}';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'STUDENT INFORMATION',
-          style: GoogleFonts.underdog(fontWeight: FontWeight.bold),
-        ),
+        Text('STUDENT', style: GoogleFonts.underdog(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        _buildInfoRow('Name:', student.studentName),
-        _buildInfoRow('Admission No:', student.admissionNumber),
-        _buildInfoRow('Grade:', student.grade),
-        _buildInfoRow('Parent:', student.parentName),
-        _buildInfoRow('Phone:', student.parentPhone),
+        _buildInfoRow('Name:', s.studentName),
+        _buildInfoRow('Admission No:', s.admissionNumber),
+        _buildInfoRow('Grade:', s.grade),
+        _buildInfoRow('Parent & Contact:', parentCombined),
       ],
     );
   }
 
-  // Update the currency display to match your backend data
-  Widget _buildItemsSection(List<ReceiptItem> items) {
+  Widget _buildGroupedItemsSection(List<GroupedReceiptItem> grouped) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'PAYMENT DETAILS',
-          style: GoogleFonts.underdog(fontWeight: FontWeight.bold),
-        ),
+        Text('PAYMENT DETAILS', style: GoogleFonts.underdog(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        // Header
         Row(
-          children: [
-            const Expanded(flex: 3, child: Text('Description', style: TextStyle(fontWeight: FontWeight.bold))),
-            const Expanded(flex: 1, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold))),
-            const Expanded(flex: 2, child: Text('Amount', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+          children: const [
+            Expanded(flex: 4, child: Text('Item', style: TextStyle(fontWeight: FontWeight.bold))),
+            Expanded(flex: 1, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold))),
+            Expanded(flex: 2, child: Text('KES', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
           ],
         ),
         const Divider(),
-        // Items
-        ...items.map((item) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text(
-                  item.description,
-                  style: GoogleFonts.underdog(fontSize: 12),
+        ...grouped.map((g) {
+          final truncated = _truncate(g.description, 26);
+          final priceSegment = g.distinctUnitPrices
+              .map((p) => p.toStringAsFixed(2))
+              .join(', ');
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(flex: 4, child: Text(truncated, style: GoogleFonts.underdog(fontSize: 12))),
+                    Expanded(flex: 1, child: Text(g.totalQuantity.toString(), style: GoogleFonts.underdog(fontSize: 12))),
+                    Expanded(flex: 2, child: Text('KES ${g.totalAmount.toStringAsFixed(2)}',
+                        style: GoogleFonts.underdog(fontSize: 12), textAlign: TextAlign.right)),
+                  ],
                 ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  item.quantity.toString(),
-                  style: GoogleFonts.underdog(fontSize: 12),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  'KES ${item.totalAmount.toStringAsFixed(2)}', // Changed from KES to KES  to match your currency
-                  style: GoogleFonts.underdog(fontSize: 12),
-                  textAlign: TextAlign.right,
-                ),
-              ),
-            ],
-          ),
-        )),
+                if (g.distinctUnitPrices.length > 1 || (g.distinctUnitPrices.length == 1 && g.totalQuantity > 1))
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Prices: $priceSegment',
+                      style: GoogleFonts.underdog(fontSize: 10, color: Colors.grey[600]),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }),
       ],
     );
   }
+
+  String _truncate(String v, int max) => v.length <= max ? v : '${v.substring(0, max - 3)}...';
 
   Widget _buildTotalsSection(ReceiptTotals totals) {
     return Column(
       children: [
         _buildTotalRow('Subtotal:', totals.subtotal),
-        if (totals.discountAmount > 0)
-          _buildTotalRow('Discount:', -totals.discountAmount),
-        if (totals.taxAmount > 0)
-          _buildTotalRow('Tax:', totals.taxAmount),
+        if (totals.discountAmount > 0) _buildTotalRow('Discount:', -totals.discountAmount),
+        if (totals.taxAmount > 0) _buildTotalRow('Tax:', totals.taxAmount),
         const Divider(),
-        _buildTotalRow(
-          'TOTAL:',
-          totals.grandTotal,
-          isTotal: true,
-        ),
+        _buildTotalRow('TOTAL:', totals.grandTotal, isTotal: true),
       ],
     );
   }
 
-  Widget _buildPaymentInfo(PaymentDetails payment) {
+  Widget _buildPaymentInfo(PaymentDetails payment, {required String processedBy}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'PAYMENT INFORMATION',
-          style: GoogleFonts.underdog(fontWeight: FontWeight.bold),
-        ),
+        Text('PAYMENT', style: GoogleFonts.underdog(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         _buildInfoRow('Method:', payment.paymentMethod),
         if (payment.transactionReference != null)
           _buildInfoRow('Reference:', payment.transactionReference!),
-        _buildInfoRow('Amount Received:', 'KES ${payment.amountReceived.toStringAsFixed(2)}'), // Changed currency
+        _buildInfoRow('Amount Received:', 'KES ${payment.amountReceived.toStringAsFixed(2)}'),
         if (payment.changeAmount > 0)
-          _buildInfoRow('Change:', 'KES ${payment.changeAmount.toStringAsFixed(2)}'), // Changed currency
+          _buildInfoRow('Change:', 'KES ${payment.changeAmount.toStringAsFixed(2)}'),
+      ],
+    );
+  }
+
+  Widget _buildSignature(String? signatureLine) {
+    final line = signatureLine ?? 'Authorized Signature: _______________';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(line, style: GoogleFonts.underdog(fontSize: 12)),
       ],
     );
   }

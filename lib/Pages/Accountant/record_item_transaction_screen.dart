@@ -6,6 +6,7 @@ import '../../models/item_transaction.dart';
 import '../../utils/app_colors.dart';
 import '../../models/student_requirement.dart';
 import '../../models/requirement_status.dart';
+import './thermal_receipt_preview_screen.dart';
 
 class RecordTransactionScreen extends ConsumerStatefulWidget {
   final String studentRequirementId;
@@ -21,17 +22,18 @@ class RecordTransactionScreen extends ConsumerStatefulWidget {
 
 class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _notesController = TextEditingController(); // renamed
+  final _notesController = TextEditingController();
   final _monetaryAmountController = TextEditingController();
   
   String _transactionType = 'Item';
   final List<TransactionItem> _transactionItems = [];
-  final Map<String, String> _itemNotes = {}; // renamed
+  final Map<String, String> _itemNotes = {};
   bool _isLoading = false;
+  bool _shouldPrintReceipt = false; // NEW: Track if we should print after saving
 
   @override
   void dispose() {
-    _notesController.dispose(); // renamed
+    _notesController.dispose();
     _monetaryAmountController.dispose();
     super.dispose();
   }
@@ -503,30 +505,65 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
 
   Widget _buildActionButtons() {
     final theme = Theme.of(context);
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _isLoading ? null : () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _recordTransaction,
+        // Save & Print Button (Primary Action)
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _isLoading ? null : () => _recordTransaction(printAfterSave: true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            child: _isLoading
+            icon: _isLoading && _shouldPrintReceipt
                 ? const SizedBox(
-                    width: 20,
-                    height: 20,
+                    width: 16,
+                    height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
-                : Text('Record Transaction', style: theme.textTheme.labelLarge?.copyWith(color: Colors.white)),
+                : const Icon(Icons.print, color: Colors.white),
+            label: Text(
+              'Save & Print Receipt',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
+        ),
+        const SizedBox(height: 12),
+        
+        // Secondary Actions Row
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _isLoading ? null : () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : () => _recordTransaction(printAfterSave: false),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.secondary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: _isLoading && !_shouldPrintReceipt
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(
+                        'Save Only',
+                        style: theme.textTheme.labelLarge?.copyWith(color: Colors.white),
+                      ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -665,7 +702,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
     );
   }
 
-  Future<void> _recordTransaction() async {
+  Future<void> _recordTransaction({required bool printAfterSave}) async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_transactionType == 'Item' && _transactionItems.isEmpty) {
@@ -713,12 +750,9 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
       for (var i = 0; i < outstanding.length; i++) {
         final s = outstanding[i];
         double share = (amount * (s.outstandingValue / totalOutstanding));
-        // Round to 2dp
         share = double.parse(share.toStringAsFixed(2));
-        // Cap by outstandingValue
         final capped = share > s.outstandingValue ? s.outstandingValue : share;
 
-        // Push, adjust last to fix rounding residue
         if (i == outstanding.length - 1) {
           final residue = double.parse((amount - allocated).toStringAsFixed(2));
           perItemMoney[s.itemId] = residue > s.outstandingValue ? s.outstandingValue : residue;
@@ -728,7 +762,6 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
         }
       }
 
-      // Remove zero entries
       perItemMoney.removeWhere((_, v) => v <= 0);
       if (perItemMoney.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -748,9 +781,13 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
       }
     }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _shouldPrintReceipt = printAfterSave;
+    });
+
     try {
-      final success = await ref.read(studentRequirementProvider.notifier).recordTransaction(
+      final transactionId = await ref.read(studentRequirementProvider.notifier).recordTransaction(
         studentRequirementId: widget.studentRequirementId,
         transactionType: _transactionType,
         monetaryAmount: _transactionType == 'Money'
@@ -764,22 +801,87 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
 
       if (!mounted) return;
 
-      if (success) {
-        // Ensure details page reloads fresh values
+      if (transactionId != null) {
         ref.invalidate(studentRequirementDetailsProvider(widget.studentRequirementId));
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction recorded successfully')),
-        );
+        
+        if (printAfterSave) {
+          // NEW: Use requirement transaction history to get the financialTransactionId
+          try {
+            final service = ref.read(itemLedgerServiceProvider);
+            final entries = await service.getRequirementTransactions(widget.studentRequirementId);
+
+            String? finId;
+            if (entries.isNotEmpty) {
+              final exact = entries.where((e) => e.id == transactionId);
+              final entry = exact.isNotEmpty ? exact.first : entries.first; // newest first (service sorts)
+              finId = entry.financialTransactionId;
+            }
+
+            final receiptTxnId = (finId != null && finId.isNotEmpty) ? finId : transactionId;
+
+            // Navigate to receipt preview with the FINANCIAL transaction ID
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ThermalReceiptPreviewScreen(
+                  transactionId: receiptTxnId,
+                ),
+              ),
+            );
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Transaction recorded successfully. Loading receipt...'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } catch (e) {
+            // Fallback to previous behavior if history lookup fails
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ThermalReceiptPreviewScreen(
+                  transactionId: transactionId,
+                ),
+              ),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('History lookup failed, opened default receipt: $e'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        } else {
+          Navigator.pop(context, true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Transaction recorded successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else {
         final err = ref.read(studentRequirementProvider).error ?? 'Failed to record transaction';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(err), backgroundColor: AppColors.error),
+        );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _shouldPrintReceipt = false;
+        });
+      }
     }
   }
 }
