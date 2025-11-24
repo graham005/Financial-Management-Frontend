@@ -10,6 +10,14 @@ class ThermalReceipt {
   final PaymentDetails payment;
   final String? footerMessage;
 
+  // NEW: academic term / year + signature
+  final String? term;
+  final String? year;
+  final String? signatureLine;
+
+  // NEW: backend-provided title
+  final String? title;
+
   ThermalReceipt({
     required this.receiptId,
     required this.receiptNumber,
@@ -21,6 +29,10 @@ class ThermalReceipt {
     required this.totals,
     required this.payment,
     this.footerMessage,
+    this.term,
+    this.year,
+    this.signatureLine,
+    this.title, // NEW
   });
 
   factory ThermalReceipt.fromJson(Map<String, dynamic> json) {
@@ -35,6 +47,10 @@ class ThermalReceipt {
       totals: ReceiptTotals.fromJson(_toMap(json['totals'])),
       payment: PaymentDetails.fromJson(_toMap(json['payment'])),
       footerMessage: json['footerMessage']?.toString(),
+      term: json['term']?.toString(),
+      year: json['year']?.toString(),
+      signatureLine: json['signatureLine']?.toString(),
+      title: json['title']?.toString(), // NEW
     );
   }
 
@@ -131,8 +147,45 @@ class ThermalReceipt {
       'totals': totals.toJson(),
       'payment': payment.toJson(),
       'footerMessage': footerMessage,
+      'term': term,
+      'year': year,
+      'signatureLine': signatureLine,
     };
   }
+
+  // NEW: Group items by description, aggregate quantity/amount, list distinct unit prices
+  List<GroupedReceiptItem> groupItems() {
+    final map = <String, List<ReceiptItem>>{};
+    for (final item in items) {
+      map.putIfAbsent(item.description, () => []).add(item);
+    }
+    return map.entries.map((e) {
+      final list = e.value;
+      final qty = list.fold<int>(0, (s, i) => s + i.quantity);
+      final total = list.fold<double>(0, (s, i) => s + i.totalAmount);
+      final prices = list.map((i) => i.unitPrice).toSet().toList()..sort();
+      return GroupedReceiptItem(
+        description: e.key,
+        totalQuantity: qty,
+        totalAmount: total,
+        distinctUnitPrices: prices,
+      );
+    }).toList();
+  }
+}
+
+// NEW helper class
+class GroupedReceiptItem {
+  final String description;
+  final int totalQuantity;
+  final double totalAmount;
+  final List<double> distinctUnitPrices;
+  GroupedReceiptItem({
+    required this.description,
+    required this.totalQuantity,
+    required this.totalAmount,
+    required this.distinctUnitPrices,
+  });
 }
 
 class OrganizationDetails {
