@@ -17,22 +17,25 @@ class OtherFeeProvider extends StateNotifier<List<OtherFee>> {
     }
   }
 
-  Future<void> fetchOtherFees() async {
+  Future<void> fetchOtherFees({int? academicYear, String? status}) async {
     try {
       await _setAuthHeader();
-      final response = await _dio.get("/admin/OtherFee");
+      
+      final queryParams = <String, dynamic>{};
+      if (academicYear != null) queryParams['academicYear'] = academicYear;
+      if (status != null) queryParams['status'] = status;
+      
+      final response = await _dio.get("/admin/OtherFee", queryParameters: queryParams);
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data ?? []; // Handle null response
+        final List<dynamic> data = response.data ?? [];
         state = data.map((json) => OtherFee.fromJson(json)).toList();
       } else if (response.statusCode == 404) {
-        // Handle 404 as empty data (some backends do this)
         state = [];
         print("No other fees found (404 - empty data)");
       }
     } catch (e) {
       if (e is DioException && e.response?.statusCode == 404) {
-        // Handle 404 as empty data
         state = [];
         print("No other fees found (404 - empty data)");
       } else {
@@ -59,7 +62,7 @@ class OtherFeeProvider extends StateNotifier<List<OtherFee>> {
     try {
       await _setAuthHeader();
       await _dio.post("/admin/OtherFee", data: data);
-      await fetchOtherFees();
+      await fetchOtherFees(status: 'Active'); // Refresh with Active filter
     } catch (e) {
       print("Error adding other fee: $e");
       rethrow;
@@ -70,7 +73,7 @@ class OtherFeeProvider extends StateNotifier<List<OtherFee>> {
     try {
       await _setAuthHeader();
       await _dio.patch("/admin/OtherFee/$id", data: data);
-      await fetchOtherFees();
+      await fetchOtherFees(status: 'Active');
     } catch (e) {
       print("Error updating other fee: $e");
       rethrow;
@@ -81,9 +84,36 @@ class OtherFeeProvider extends StateNotifier<List<OtherFee>> {
     try {
       await _setAuthHeader();
       await _dio.delete("/admin/OtherFee/$id");
-      await fetchOtherFees();
+      await fetchOtherFees(status: 'Active');
     } catch (e) {
       print("Error deleting other fee: $e");
+      rethrow;
+    }
+  }
+
+  // NEW: Archive fees (bulk or single)
+  Future<void> archiveOtherFees(int academicYear, List<String> feeIds) async {
+    try {
+      await _setAuthHeader();
+      await _dio.post("/admin/OtherFee/archive", data: {
+        "academicYear": academicYear,
+        "feeIds": feeIds,
+      });
+      await fetchOtherFees(status: 'Active');
+    } catch (e) {
+      print("Error archiving other fees: $e");
+      rethrow;
+    }
+  }
+
+  // NEW: Unarchive single fee
+  Future<void> unarchiveOtherFee(String id) async {
+    try {
+      await _setAuthHeader();
+      await _dio.post("/admin/OtherFee/$id/unarchive");
+      await fetchOtherFees();
+    } catch (e) {
+      print("Error unarchiving other fee: $e");
       rethrow;
     }
   }
