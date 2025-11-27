@@ -206,20 +206,11 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
     final gradeDistribution = <String, int>{};
     final feeBreakdown = <String, double>{};
 
-    // If no fee structures exist, calculate potential revenue from other fees
-    if (feeStructures.isEmpty && otherFees.isNotEmpty) {
-      // Calculate based on other fees if no fee structures
-      final totalOtherFeesAmount = otherFees.fold<double>(
-        0.0, 
-        (sum, fee) => sum + (fee.amount.toDouble())
-      );
-      totalPossibleRevenue = totalOtherFeesAmount * totalStudents;
-    }
-
+    // REMOVED: grade-specific other fees logic since otherFees are now system-wide
+    
     // Process each grade
     for (final grade in grades) {
-      
-      // Count students in this grade - try different property names
+      // Count students in this grade
       final studentsInGrade = students.where((s) {
         try {
           if (s is Map) {
@@ -227,7 +218,6 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
             final g = gradeProperty?.toString();
             return g == grade.name;
           }
-          // Try different property names for the student object
           final gradeProperty = _getStudentGrade(s);
           return gradeProperty == grade.name;
         } catch (e) {
@@ -235,13 +225,11 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
         }
       }).length;
 
-
-      // Find fee structure for this grade - try case-insensitive matching
+      // Find fee structure for this grade
       FeeStructure? feeStructure = feeStructures
           .where((fs) => _compareGradeNames(fs.gradeName, grade.name))
           .firstOrNull;
 
-      // If exact match not found, try partial matching
       if (feeStructure == null && feeStructures.isNotEmpty) {
         feeStructure = feeStructures
             .where((fs) => fs.gradeName.toLowerCase().contains(grade.name.toLowerCase()) ||
@@ -249,44 +237,27 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
             .firstOrNull;
       }
 
-      // Calculate grade metrics
+      // Calculate grade metrics (only from fee structure)
       double totalFee = 0.0;
       if (feeStructure != null) {
-        // Use all fee components
         totalFee = (feeStructure.term1Fee.toDouble()) +
                    (feeStructure.term2Fee.toDouble()) +
                    (feeStructure.term3Fee.toDouble());
         
-        // If individual terms are not available, use totalFee
         if (totalFee == 0.0) {
           totalFee = feeStructure.totalFee.toDouble();
         }
-        
-      } else {
-        // If no fee structure found, use average of other fees for this grade
-        final gradeOtherFees = otherFees.where((of) => 
-            _compareGradeNames(of.gradeName, grade.name));
-        totalFee = gradeOtherFees.fold<double>(
-          0.0, 
-          (sum, fee) => sum + (fee.amount.toDouble())
-        );
       }
 
       final potentialRevenue = totalFee * studentsInGrade;
       totalPossibleRevenue += potentialRevenue;
-
-
-      // Count other fees for this grade
-      final otherFeesForGrade = otherFees
-          .where((of) => _compareGradeNames(of.gradeName, grade.name))
-          .length;
 
       gradeAnalytics.add(GradeWithFeeInfo(
         gradeName: grade.name,
         studentCount: studentsInGrade,
         totalFee: totalFee,
         potentialRevenue: potentialRevenue,
-        otherFeesCount: otherFeesForGrade,
+        otherFeesCount: 0, // CHANGED: otherFees are system-wide, not grade-specific
       ));
 
       gradeDistribution[grade.name] = studentsInGrade;
@@ -295,9 +266,14 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
       }
     }
 
+    // CHANGED: Add system-wide other fees to breakdown (not per-grade)
+    if (otherFees.isNotEmpty) {
+      final totalOtherFeesAmount = otherFees.fold<double>(0.0, (sum, fee) => sum + fee.amount);
+      feeBreakdown['System-wide Other Fees'] = totalOtherFeesAmount;
+    }
+
     // If still no revenue calculated and we have students and fee structures
     if (totalPossibleRevenue == 0.0 && totalStudents > 0 && feeStructures.isNotEmpty) {
-      // Calculate average fee across all fee structures
       final averageStructureFee = feeStructures.fold<double>(
         0.0,
         (sum, fs) {
@@ -310,18 +286,6 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
       
       totalPossibleRevenue = averageStructureFee * totalStudents;
     }
-
-    // Calculate other fees breakdown
-    final otherFeesByGrade = <String, double>{};
-    for (final otherFee in otherFees) {
-      final amount = otherFee.amount.toDouble();
-      otherFeesByGrade[otherFee.gradeName] = 
-          (otherFeesByGrade[otherFee.gradeName] ?? 0.0) + amount;
-    }
-    
-    otherFeesByGrade.forEach((k, v) {
-      feeBreakdown['$k - Other Fees'] = v;
-    });
 
     // Calculate average fee per grade
     final averageFeePerGrade = feeStructures.isNotEmpty
@@ -336,9 +300,7 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
             feeStructures.length
         : 0.0;
 
-    
-
-    // Generate recent activities based on data
+    // Generate recent activities
     final recentActivities = _generateRecentActivities(
       grades, feeStructures, otherFees, students, users
     );
@@ -358,10 +320,8 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
     );
   }
 
-  // Helper method to get grade from student object
   String? _getStudentGrade(dynamic student) {
     try {
-      // Try different property names that might represent grade
       return student.gradeName ?? 
              student.grade ?? 
              student.className ?? 
@@ -373,7 +333,6 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
     }
   }
 
-  // Helper method for case-insensitive grade name comparison
   bool _compareGradeNames(String name1, String name2) {
     return name1.toLowerCase().trim() == name2.toLowerCase().trim();
   }
@@ -407,11 +366,11 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
       }
     }
 
-    // Other fee activities
+    // CHANGED: Other fee activities (no longer grade-specific)
     if (otherFees.isNotEmpty) {
       activities.add(RecentActivityItem(
         action: "Other Fee Added",
-        description: "${otherFees.last.name} for ${otherFees.last.gradeName}",
+        description: "${otherFees.last.name} - ${otherFees.last.description}",
         time: now.subtract(const Duration(hours: 1)),
         type: "other_fee",
       ));
@@ -463,7 +422,7 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
       ));
     }
 
-    // Add some simulated system activities
+    // System activities
     activities.add(RecentActivityItem(
       action: "System Backup",
       description: "Automatic database backup completed",
@@ -485,7 +444,6 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
     await fetchDashboardData();
   }
   
-  // Helper extension to get first or null from list
   T? firstOrNull<T>(List<T> list) {
     return list.isEmpty ? null : list.first;
   }
