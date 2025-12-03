@@ -1,3 +1,4 @@
+import 'package:finance_management_frontend/Pages/Auth/change_password_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -148,6 +149,20 @@ class SideNavLayout extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
+                      ListTile(
+                        leading: Icon(Icons.lock_outline, color: AppColors.primary),
+                        title: Text(
+                          'Change Password',
+                          style: GoogleFonts.underdog(fontWeight: FontWeight.w600),
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => const ChangePasswordDialog(),
+                          );
+                        },
+                      ),
+                      const Divider(),
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.1),
@@ -222,6 +237,12 @@ class SideNavLayout extends ConsumerWidget {
       ),
       _NavItem(
         icon: Icons.payment,
+        title: 'Payments',
+        route: '/payments',
+        currentRoute: currentRoute,
+      ),
+      _NavItem(
+        icon: Icons.payments_rounded,
         title: 'Other Fees',
         route: '/other-fees',
         currentRoute: currentRoute,
@@ -242,6 +263,12 @@ class SideNavLayout extends ConsumerWidget {
         icon: Icons.print,
         title: 'Printer Settings',
         route: '/printer-settings',
+        currentRoute: currentRoute,
+      ),
+      _NavItem(
+        icon: Icons.analytics,
+        title: 'Reports',
+        route: '/reports',
         currentRoute: currentRoute,
       ),
     ];
@@ -277,12 +304,7 @@ class SideNavLayout extends ConsumerWidget {
         route: '/student-requirement',
         currentRoute: currentRoute,
       ),
-      _NavItem(
-        icon: Icons.analytics,
-        title: 'Reports',
-        route: '/thermal-receipt-preview',
-        currentRoute: currentRoute,
-      ),
+      
     ];
 
     return userRole == 'Admin' ? adminItems : accountantItems;
