@@ -6,18 +6,19 @@ import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_
 import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_transaction_history_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/student_requirements_screen.dart';
 import 'package:finance_management_frontend/provider/receipt_provider.dart';
-import 'Pages/Accountant/fee_structure_display_screen.dart';
-import 'Pages/Accountant/print_history_screen.dart';
-import 'Pages/Accountant/record_item_transaction_screen.dart';
-import 'Pages/Accountant/students_display_screen.dart';
-import 'Pages/Accountant/thermal_receipt_preview_screen.dart';
-import 'Pages/Admin/fee_structure_screen.dart';
-import 'Pages/Admin/other_fees_screen.dart';
-import 'Pages/Admin/printer_settings_screen.dart';
-import 'Pages/Admin/requirement/requirement_list_details_screen.dart';
-import 'Pages/Admin/requirement/student_requirement_details_screen.dart';
-import 'Pages/Admin/student_onboarding_screen.dart';
-import 'Pages/Admin/user_management_screen.dart';
+import 'package:finance_management_frontend/provider/auth_provider.dart';
+import 'package:finance_management_frontend/Pages/Accountant/fee_structure_display_screen.dart';
+import 'package:finance_management_frontend/Pages/Accountant/print_history_screen.dart';
+import 'package:finance_management_frontend/Pages/Accountant/record_item_transaction_screen.dart';
+import 'package:finance_management_frontend/Pages/Accountant/students_display_screen.dart';
+import 'package:finance_management_frontend/Pages/Accountant/thermal_receipt_preview_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/fee_structure_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/other_fees_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/printer_settings_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_list_details_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/requirement/student_requirement_details_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/student_onboarding_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/user_management_screen.dart';
 import '../Pages/Admin/admin_dashboard_screen.dart';
 import '../Pages/Auth/login.dart';
 import 'package:finance_management_frontend/provider/theme_provider.dart';
@@ -26,8 +27,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'Pages/Accountant/payment/student_selection_screen.dart';
-import 'Pages/Admin/report/report_detail_screen.dart';
+import 'package:finance_management_frontend/Pages/Accountant/payment/student_selection_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/report/report_detail_screen.dart';
 
 
 /// Main entry point for the Financial Management System
@@ -53,18 +54,75 @@ Future<void> main() async {
 }
 
 /// Root application widget with theme and routing configuration
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Listen for auth state changes
+    // This will trigger navigation when user is logged out due to token refresh failure
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.listen<AuthState>(authProvider, (previous, next) {
+        // User was authenticated but is now logged out
+        if (previous?.isAuthenticated == true && !next.isAuthenticated) {
+          print('🚪 Auth state changed: User logged out (token refresh failed)');
+          
+          // Navigate to login screen and clear navigation stack
+          _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false,
+          );
+          
+          // Show session expired message
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final context = _navigatorKey.currentContext;
+            if (context != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.white),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Your session has expired. Please log in again.',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.orange,
+                  behavior: SnackBarBehavior.floating,
+                  duration: Duration(seconds: 5),
+                ),
+              );
+            }
+          });
+        }
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider);
+    final authState = ref.watch(authProvider);
 
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       title: 'Finance Management System',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      initialRoute: "/login",
+      initialRoute: authState.isAuthenticated ? _getInitialRoute(authState.userRole) : "/login",
       navigatorObservers: [routeObserver],
       
       // Handle dynamic routes with arguments
@@ -224,6 +282,19 @@ class MyApp extends ConsumerWidget {
         },
       },
     );
+  }
+
+  /// Determine initial route based on user role
+  String _getInitialRoute(String? userRole) {
+    if (userRole == null) return "/login";
+    
+    switch (userRole.toLowerCase()) {
+      case 'accountant':
+        return '/accountant/dashboard';
+      case 'admin':
+      default:
+        return '/dashboard';
+    }
   }
 }
 
