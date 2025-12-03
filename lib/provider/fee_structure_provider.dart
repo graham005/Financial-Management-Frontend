@@ -2,12 +2,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // added
-import '../models/fee_structure.dart'; // Import from models
+import '../models/fee_structure.dart';
+import '../services/auth_interceptor.dart'; // Import from models
 
 class FeeStructureProvider extends StateNotifier<List<FeeStructure>> {
-  FeeStructureProvider(): super([]);
-
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+
+  FeeStructureProvider(): super([]) {
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   // Add auth header like other providers
   Future<void> _setAuthHeader() async {

@@ -7,9 +7,14 @@ import '../models/requirement_item.dart';
 import '../models/student_requirement.dart';
 import '../models/item_transaction.dart';
 import '../models/requirement_transaction_history_entry.dart';
+import 'auth_interceptor.dart';
 
 class ItemLedgerService {
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+
+  ItemLedgerService(): super() {
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> _setAuthHeaders() async {
     final prefs = await SharedPreferences.getInstance();

@@ -2,9 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/student_promotion.dart';
+import 'auth_interceptor.dart';
 
 class PromotionService {
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+
+  PromotionService(): super() {
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> _setAuthHeaders() async {
     final prefs = await SharedPreferences.getInstance();

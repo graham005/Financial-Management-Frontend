@@ -3,11 +3,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/other_fee.dart';
+import '../services/auth_interceptor.dart';
 
 class OtherFeeProvider extends StateNotifier<List<OtherFee>> {
-  OtherFeeProvider() : super([]);
-
+  
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+  
+  OtherFeeProvider() : super([]) {
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> _setAuthHeader() async {
     final prefs = await SharedPreferences.getInstance();

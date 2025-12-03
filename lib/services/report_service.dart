@@ -10,9 +10,14 @@ import '../models/report/item_transactions_report.dart';
 import '../models/report/student_statement_report.dart';
 import '../models/report/report_summary.dart';
 import '../models/report/report_filter.dart';
+import 'auth_interceptor.dart';
 
 class ReportService {
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+
+  ReportService(): super() {
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> _setAuthHeaders() async {
     final prefs = await SharedPreferences.getInstance();

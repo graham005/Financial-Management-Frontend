@@ -4,8 +4,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/thermal_receipt.dart';
 import 'dart:convert';
 
+import 'auth_interceptor.dart';
+
 class ThermalReceiptService {
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+
+  ThermalReceiptService(): super() {
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> _setAuthHeaders() async {
     final prefs = await SharedPreferences.getInstance();

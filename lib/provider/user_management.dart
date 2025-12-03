@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/auth_interceptor.dart';
+
 class User{
   final String id;
   final String username;
@@ -36,11 +38,13 @@ class User{
 }
 
 class UserProvider extends StateNotifier<AsyncValue<List<User>>> {
-  UserProvider(): super(const AsyncValue.loading()) {
-    fetchUsers();
-  }
 
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+
+  UserProvider(): super(const AsyncValue.loading()) {
+    fetchUsers();
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> fetchUsers() async {
     try {

@@ -6,9 +6,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/report/report_filter.dart';
+import 'auth_interceptor.dart';
 
 class ReportDownloadService {
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+
+  ReportDownloadService(): super() {
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> _setAuthHeaders() async {
     final prefs = await SharedPreferences.getInstance();

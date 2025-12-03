@@ -50,4 +50,29 @@ class AuthService {
       throw Exception('Failed to change password: $e');
     }
   }
+
+  Future<Map<String, String>?> refreshToken(String refreshToken) async {
+    try {
+      final response = await _dio.post(
+        '/Auth/Refresh',
+        data: {
+          'token': refreshToken,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        
+        return {
+          'accessToken': data['accessToken'] ?? data['token'] ?? data['access_token'],
+          'refreshToken': data['refreshToken'] ?? data['refresh_token'] ?? refreshToken,
+        };
+      }
+
+      return null;
+    } catch (e) {
+      print('❌ Token refresh failed: $e');
+      return null;
+    }
+  }
 }

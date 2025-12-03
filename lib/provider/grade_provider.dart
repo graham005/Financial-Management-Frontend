@@ -3,13 +3,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/grade.dart';
+import '../services/auth_interceptor.dart';
 
 class GradeProvider extends StateNotifier<AsyncValue<List<Grade>>> {
+  
+  final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+  
   GradeProvider() : super(const AsyncValue.loading()) {
     fetchGrades();
+    _dio.interceptors.add(AuthInterceptor(_dio));
   }
 
-  final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
 
   Future<void> fetchGrades() async {
     try {

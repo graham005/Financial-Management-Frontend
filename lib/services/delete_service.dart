@@ -1,10 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'auth_interceptor.dart';
 
 
 class DeleteService {
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+
+  DeleteService(): super(){
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> deleteUser(BuildContext context, String userId) async{
     try{

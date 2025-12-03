@@ -3,10 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref){
-  return AuthNotifier();
-});
+import '/services/auth_interceptor.dart';
 
 class AuthState {
   final bool isAuthenticated;
@@ -20,28 +17,36 @@ class AuthState {
     this.email,
     this.username,
   });
-
-  AuthState copyWith({
-    bool? isAuthenticated,
-    String? userRole,
-    String? email,
-    String? username,
-  }) {
-    return AuthState(
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      userRole: userRole ?? this.userRole,
-      email: email ?? this.email,
-      username: username ?? this.username,
-    );
-  }
 }
 
-class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier(): super(AuthState(isAuthenticated: false)) {
+class AuthProvider extends StateNotifier<AuthState> {
+  late final Dio _dio;
+
+  AuthProvider() : super(AuthState(isAuthenticated: false)) {
+    _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+    
+    // Add auth interceptor
+    _dio.interceptors.add(AuthInterceptor(_dio));
+    
     _checkAuthStatus();
   }
 
-  final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+  Future<void> _checkAuthStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("auth_token");
+    final userRole = prefs.getString("user_role");
+    final email = prefs.getString("email");
+    final username = prefs.getString("username");
+
+    if (token != null && userRole != null) {
+      state = AuthState(
+        isAuthenticated: true,
+        userRole: userRole,
+        email: email,
+        username: username,
+      );
+    }
+  }
 
   Future<void> login(String email, String password) async {
     try {
@@ -49,33 +54,45 @@ class AuthNotifier extends StateNotifier<AuthState> {
         "email": email,
         "password": password,
       });
-      
-      if (response.statusCode != 200) {
-        throw Exception("Login failed: ${response.statusMessage}");
-      }
 
-      final token = response.data["accessToken"];
-      
-      if (token != null) {
-        // Store token first
+      if (response.statusCode == 200) {
+        final data = response.data;
+        
+        // Extract tokens
+        final token = data["token"] ?? data["accessToken"] ?? data["access_token"];
+        final refreshToken = data["refreshToken"] ?? data["refresh_token"];
+        
+        if (token == null) {
+          throw Exception("No token received from server");
+        }
+
+        // Get user role from token
+        final userRole = _extractRoleFromJWT(token);
+
+        // Fetch additional user info
+        _dio.options.headers['Authorization'] = 'Bearer $token';
+        final userInfo = await _fetchUserInfo();
+        final username = userInfo['username'] ?? userInfo['userName'] ?? userInfo['name'];
+
+        // Save to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("auth_token", token);
         
-        // Set Authorization header for subsequent requests
-        _dio.options.headers['Authorization'] = 'Bearer $token';
+        if (refreshToken != null) {
+          await prefs.setString("refresh_token", refreshToken);
+        }
         
-        // Fetch user information from /Auth/Me endpoint
-        final userInfo = await _fetchUserInfo();
-        
-        // Extract role from JWT payload as fallback
-        final userRole = userInfo['role'] ?? _extractRoleFromJWT(token);
-        final username = userInfo['username'] ?? userInfo['userName'] ?? userInfo['name'];
-        
-        // Store user information
         await prefs.setString("user_role", userRole);
         await prefs.setString("email", email);
+        
         if (username != null) {
           await prefs.setString("username", username);
+        }
+
+        print('✅ Login successful');
+        print('✅ Access Token: ${token.substring(0, 20)}...');
+        if (refreshToken != null) {
+          print('✅ Refresh Token: ${refreshToken.substring(0, 20)}...');
         }
 
         state = AuthState(
@@ -86,6 +103,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         );
       }
     } catch (e) {
+      print('❌ Login error: $e');
       throw Exception("Login failed: $e");
     }
   }
@@ -101,7 +119,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
     } catch (e) {
       print("Error fetching user info: $e");
-      // Return empty map if request fails
       return {};
     }
   }
@@ -110,95 +127,43 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final parts = token.split('.');
       if (parts.length != 3) {
-        return "Admin"; // Default fallback
+        throw Exception("Invalid JWT format");
       }
-      
+
       final payload = parts[1];
-      final normalized = base64Url.normalize(payload);
-      final decoded = utf8.decode(base64Url.decode(normalized));
+      final normalized = base64.normalize(payload);
+      final decoded = utf8.decode(base64.decode(normalized));
       final Map<String, dynamic> payloadMap = json.decode(decoded);
-      
-      // Common JWT claim names for roles
-      return payloadMap['role'] ?? 
-             payloadMap['Role'] ?? 
-             payloadMap['roles'] ?? 
-             payloadMap['Roles'] ?? 
-             payloadMap['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
-             "Admin"; // Default fallback
+
+      // Check common role claim names
+      final role = payloadMap['role'] ?? 
+                   payloadMap['Role'] ?? 
+                   payloadMap['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
+      if (role == null) {
+        print("Warning: No role found in JWT, defaulting to 'User'");
+        return "User";
+      }
+
+      return role.toString();
     } catch (e) {
       print("Error extracting role from JWT: $e");
-      return "Admin"; // Default fallback
-    }
-  }
-
-  Future<void> refreshUserInfo() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString("auth_token");
-      
-      if (token != null) {
-        _dio.options.headers['Authorization'] = 'Bearer $token';
-        final userInfo = await _fetchUserInfo();
-        
-        final userRole = userInfo['role'] ?? state.userRole ?? "Admin";
-        final username = userInfo['username'] ?? userInfo['userName'] ?? userInfo['name'];
-        final email = userInfo['email'] ?? state.email;
-        
-        // Update stored information
-        await prefs.setString("user_role", userRole);
-        if (email != null) await prefs.setString("email", email);
-        if (username != null) await prefs.setString("username", username);
-        
-        state = state.copyWith(
-          userRole: userRole,
-          email: email,
-          username: username,
-        );
-      }
-    } catch (e) {
-      print("Error refreshing user info: $e");
+      return "User";
     }
   }
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("auth_token");
+    await prefs.remove("refresh_token");
     await prefs.remove("user_role");
     await prefs.remove("email");
     await prefs.remove("username");
-    
-    // Clear Authorization header
-    _dio.options.headers.remove('Authorization');
-    
+
     state = AuthState(isAuthenticated: false);
   }
-
-  Future<void> _checkAuthStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("auth_token");
-    final userRole = prefs.getString("user_role");
-    final email = prefs.getString("email");
-    final username = prefs.getString("username");
-    
-    if (token != null) {
-      // Set Authorization header
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-      
-      state = AuthState(
-        isAuthenticated: true,
-        userRole: userRole,
-        email: email,
-        username: username,
-      );
-      
-      // Optionally refresh user info on app start
-      // Uncomment the line below if you want to fetch fresh user data on app start
-      // refreshUserInfo();
-    }
-  }
-
-  Future<bool> isAuthenticated() async {
-    await _checkAuthStatus();
-    return state.isAuthenticated;
-  }
 }
+
+final authProvider = StateNotifierProvider<AuthProvider, AuthState>((ref) {
+  return AuthProvider();
+});

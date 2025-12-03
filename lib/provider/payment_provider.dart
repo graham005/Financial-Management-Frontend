@@ -6,11 +6,14 @@ import '../models/student_fee.dart';
 import '../models/payment.dart';
 import '../models/payment_detail.dart';
 import '../models/student_arrears.dart';
+import '../services/auth_interceptor.dart';
 
 class PaymentProvider extends StateNotifier<AsyncValue<StudentFee?>> {
-  PaymentProvider() : super(const AsyncValue.data(null));
-
   final Dio _dio = Dio(BaseOptions(baseUrl: dotenv.env['API_BASE_URL'] ?? ''));
+  
+  PaymentProvider() : super(const AsyncValue.data(null)){
+    _dio.interceptors.add(AuthInterceptor(_dio));
+  }
 
   Future<void> _setAuthHeader() async {
     final prefs = await SharedPreferences.getInstance();
