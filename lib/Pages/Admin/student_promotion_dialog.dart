@@ -364,7 +364,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
 
   Widget _buildPromotionGroupCard(PromotionGroup group, bool isDark) {
     final allStudentsSelected = group.students.every((s) => _selectedStudentIds.contains(s.studentId));
-    final someStudentsSelected = group.students.any((s) => _selectedStudentIds.contains(s.studentId));
+    group.students.any((s) => _selectedStudentIds.contains(s.studentId));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
