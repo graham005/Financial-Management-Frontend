@@ -17,7 +17,6 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final studentRequirementAsync = ref.watch(studentRequirementDetailsProvider(studentRequirementId));
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor, // was AppColors.lightBackground

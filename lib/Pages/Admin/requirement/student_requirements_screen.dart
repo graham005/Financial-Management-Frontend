@@ -1284,29 +1284,6 @@ class _RequirementListsDebugDialog extends ConsumerWidget {
         ElevatedButton(
           onPressed: () {
             // Copy debug info to clipboard
-            final debugInfo = '''
-Provider State Debug Info:
-- Is Loading: ${requirementListsState.isLoading}
-- Error: ${requirementListsState.error ?? "None"}
-- Lists Count: ${requirementListsState.lists.length}
-
-Requirement Lists:
-${requirementListsState.lists.asMap().entries.map((entry) {
-              final index = entry.key;
-              final list = entry.value;
-              
-              return '''
-- Requirement List #${index + 1}:
-  ID: ${list.id}
-  Term: ${list.term}
-  Academic Year: ${list.academicYear}
-  Status: ${list.status}
-  Created At: ${list.createdAt}
-  Created By: ${list.createdBy}
-  Items Count: ${list.items?.length ?? 0}
-  ''';
-            }).join()}
-            ''';
 
             // TODO: Implement clipboard copy functionality
             ScaffoldMessenger.of(context).showSnackBar(
