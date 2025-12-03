@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   charset_converter
   flutter_secure_storage_linux
+  open_file_linux
   printing
 )
 

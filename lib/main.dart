@@ -1,9 +1,11 @@
 //import 'package:finance_management_frontend/Pages/Accountant/record_item_transaction_screen.dart';
 import 'package:finance_management_frontend/Pages/Accountant/accountant_dashboard.dart';
 import 'package:finance_management_frontend/Pages/Admin/grades_screen.dart';
+import 'package:finance_management_frontend/Pages/Admin/report/reports_main_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_list_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/requirement_transaction_history_screen.dart';
 import 'package:finance_management_frontend/Pages/Admin/requirement/student_requirements_screen.dart';
+import 'package:finance_management_frontend/provider/receipt_provider.dart';
 import 'Pages/Accountant/fee_structure_display_screen.dart';
 import 'Pages/Accountant/print_history_screen.dart';
 import 'Pages/Accountant/record_item_transaction_screen.dart';
@@ -25,18 +27,32 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'Pages/Accountant/payment/student_selection_screen.dart';
+import 'Pages/Admin/report/report_detail_screen.dart';
 
+
+/// Main entry point for the Financial Management System
+/// 
+/// Initializes:
+/// - Flutter bindings
+/// - Environment variables from .env file
+/// - Portrait-only orientation
+/// - Riverpod state management
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables (API_BASE_URL, etc.)
   await dotenv.load();
+  
+  // Lock app to portrait orientation
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
-    runApp(ProviderScope(
+    runApp(const ProviderScope(
       child: MyApp(),
     ));
   });
 }
 
+/// Root application widget with theme and routing configuration
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
@@ -50,74 +66,152 @@ class MyApp extends ConsumerWidget {
       theme: theme,
       initialRoute: "/login",
       navigatorObservers: [routeObserver],
-      routes: {
-        "/login": (context) => const LoginScreen(),
-        "/dashboard": (context) => const SideNavLayout(
-              currentRoute: '/dashboard',
-              child: AdminDashboardScreen(),
-            ),
-        "/user-management": (context) => SideNavLayout(
-              currentRoute: '/user-management',
-              child: UserManagementScreen(),
-            ),
-        "/grades": (context) => const SideNavLayout(
-              currentRoute: '/grades',
-              child: GradesScreen(),
-            ),
-        "/student-onboarding": (context) => SideNavLayout(
-              currentRoute: '/student-onboarding',
-              child: StudentOnboardingScreen(),
-            ),
-        "/fee-structure": (context) => SideNavLayout(
-              currentRoute: '/fee-structure',
-              child: FeeStructureScreen(),
-            ),
-        "/other-fees": (context) => const SideNavLayout(
-              currentRoute: '/other-fees',
-              child: OtherFeesScreen(),
-            ),
-        "/payments": (context) => const SideNavLayout(
-              currentRoute: '/payments',
+      
+      // Handle dynamic routes with arguments
+      onGenerateRoute: (settings) {
+        // Payment route with student argument
+        if (settings.name == '/payment') {
+          return MaterialPageRoute(
+            builder: (context) => SideNavLayout(
+              currentRoute: '/payment',
               child: StudentSelectionScreen(),
             ),
+          );
+        }
+        
+        // Item transaction recording route
+        if (settings.name == '/record-transaction') {
+          final studentRequirementId = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) => SideNavLayout(
+              currentRoute: '/record-transaction',
+              child: RecordTransactionScreen(studentRequirementId: studentRequirementId),
+            ),
+          );
+        }
+
+        // Requirement list details route
+        if (settings.name == '/requirement-list-details') {
+          final requirementListId = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) => SideNavLayout(
+              currentRoute: '/requirement-list-details',
+              child: RequirementListDetailsScreen(requirementListId: requirementListId),
+            ),
+          );
+        }
+
+        // Student requirement details route
+        if (settings.name == '/student-requirement-details') {
+          final studentRequirementId = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) => SideNavLayout(
+              currentRoute: '/student-requirement-details',
+              child: StudentRequirementDetailsScreen(studentRequirementId: studentRequirementId),
+            ),
+          );
+        }
+
+        // Thermal receipt preview route
+        if (settings.name == '/thermal-receipt-preview') {
+          final transactionId = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (context) => SideNavLayout(
+              currentRoute: '/thermal-receipt-preview',
+              child: ThermalReceiptPreviewScreen(transactionId: transactionId),
+            ),
+          );
+        }
+
+        // This handles navigation to specific report types with filters
+        if (settings.name == '/report-detail') {
+          final reportType = settings.arguments as ReportType;
+          return MaterialPageRoute(
+            builder: (context) => SideNavLayout(
+              currentRoute: '/report-detail',
+              child: ReportDetailScreen(reportType: reportType),
+            ),
+          );
+        }
+
+        // Return null for unhandled routes (falls back to named routes below)
+        return null;
+      },
+      
+      // Named routes for static navigation
+      routes: {
+        // ==================== AUTHENTICATION ====================
+        "/login": (context) => const LoginScreen(),
+
+        // ==================== ADMIN ROUTES ====================
+        "/dashboard": (context) => const SideNavLayout(
+          currentRoute: '/dashboard',
+          child: AdminDashboardScreen(),
+        ),
+        "/user-management": (context) => SideNavLayout(
+          currentRoute: '/user-management',
+          child: UserManagementScreen(),
+        ),
+        "/student-onboarding": (context) => SideNavLayout(
+          currentRoute: '/student-onboarding',
+          child: StudentOnboardingScreen(),
+        ),
+        "/fee-structure": (context) => SideNavLayout(
+          currentRoute: '/fee-structure',
+          child: FeeStructureScreen(),
+        ),
+        "/other-fees": (context) => const SideNavLayout(
+          currentRoute: '/other-fees',
+          child: OtherFeesScreen(),
+        ),
+        "/grades": (context) => const SideNavLayout(
+          currentRoute: '/grades',
+          child: GradesScreen(),
+        ),
+        "/printer-settings": (context) => const SideNavLayout(
+          currentRoute: '/printer-settings',
+          child: PrinterSettingsScreen(),
+        ),
+
+        // Main reports dashboard showing all report types
+        "/reports": (context) => const SideNavLayout(
+          currentRoute: '/reports',
+          child: ReportsScreen(),
+        ),
+        
+        // ==================== ACCOUNTANT ROUTES ====================
         "/accountant/dashboard": (context) => const SideNavLayout(
-              currentRoute: '/accountant/dashboard',
-              child: AccountantDashboardScreen(),
-            ),
+          currentRoute: '/accountant/dashboard',
+          child: AccountantDashboardScreen(),
+        ),
         "accountant/students": (context) => const SideNavLayout(
-              currentRoute: 'accountant/students',
-              child: StudentsDisplayScreen(),
-            ),
+          currentRoute: 'accountant/students',
+          child: StudentsDisplayScreen(),
+        ),
         "/accountant/fee-structure": (context) => const SideNavLayout(
-              currentRoute: '/accountant/fee-structure',
-              child: FeeStructureDisplayScreen(),
-            ),
+          currentRoute: '/accountant/fee-structure',
+          child: FeeStructureDisplayScreen(),
+        ),
+        "/accountant/print-history": (context) => const SideNavLayout(
+          currentRoute: '/accountant/print-history',
+          child: PrintHistoryScreen(),
+        ),
+
+        // ==================== PAYMENT ROUTES ====================
+        "/payments": (context) => const SideNavLayout(
+          currentRoute: '/payments',
+          child: StudentSelectionScreen(),
+        ),
+
+        // ==================== ITEM LEDGER ROUTES ====================
         "/requirement-list": (context) => const SideNavLayout(
-              currentRoute: '/requirement-list',
-              child: RequirementListsScreen(),
-            ),
-        "/requirement-list-details": (context) {
-          final requirementListId =
-              ModalRoute.of(context)?.settings.arguments as String? ?? '';
-          return SideNavLayout(
-            currentRoute: '/requirement-list-details',
-            child: RequirementListDetailsScreen(
-                requirementListId: requirementListId),
-          );
-        },
+          currentRoute: '/requirement-list',
+          child: RequirementListsScreen(),
+        ),
         "/student-requirement": (context) => const SideNavLayout(
-              currentRoute: '/student-requirement',
-              child: StudentRequirementsScreen(),
-            ),
-        "/student-requirement-details": (context) {
-          final studentRequirementId =
-              ModalRoute.of(context)?.settings.arguments as String? ?? '';
-          return SideNavLayout(
-            currentRoute: '/student-requirement-details',
-            child: StudentRequirementDetailsScreen(
-                studentRequirementId: studentRequirementId),
-          );
-        },
+          currentRoute: '/student-requirement',
+          child: StudentRequirementsScreen(),
+        ),
         "/requirement-transaction-history": (context) {
           final studentRequirementId =
               ModalRoute.of(context)?.settings.arguments as String? ?? '';
@@ -128,34 +222,11 @@ class MyApp extends ConsumerWidget {
             ),
           );
         },
-        "/record-transaction": (context) {
-          final studentRequirementId =
-              ModalRoute.of(context)?.settings.arguments as String? ?? '';
-          return SideNavLayout(
-            currentRoute: '/record-transaction',
-            child: RecordTransactionScreen(
-                studentRequirementId: studentRequirementId),
-          );
-        },
-        "/thermal-receipt-preview": (context) {
-          final transactionId =
-              ModalRoute.of(context)?.settings.arguments as String? ?? '';
-          return SideNavLayout(
-            currentRoute: '/thermal-receipt-preview',
-            child: ThermalReceiptPreviewScreen(transactionId: transactionId),
-          );
-        },
-        "/printer-settings": (context) => const SideNavLayout(
-              currentRoute: '/printer-settings',
-              child: PrinterSettingsScreen(),
-            ),
-        "/accountant/print-history": (context) => const SideNavLayout(
-              currentRoute: '/accountant/print-history',
-              child: PrintHistoryScreen(),
-            ),
       },
     );
   }
 }
 
+/// Global route observer for tracking navigation lifecycle
+/// Used for refreshing data when returning to screens
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
