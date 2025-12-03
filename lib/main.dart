@@ -65,57 +65,50 @@ class _MyAppState extends ConsumerState<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
-  void initState() {
-    super.initState();
-    
-    // Listen for auth state changes
-    // This will trigger navigation when user is logged out due to token refresh failure
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen<AuthState>(authProvider, (previous, next) {
-        // User was authenticated but is now logged out
-        if (previous?.isAuthenticated == true && !next.isAuthenticated) {
-          print('🚪 Auth state changed: User logged out (token refresh failed)');
-          
-          // Navigate to login screen and clear navigation stack
-          _navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            '/login',
-            (route) => false,
-          );
-          
-          // Show session expired message
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final context = _navigatorKey.currentContext;
-            if (context != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.white),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Your session has expired. Please log in again.',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Colors.orange,
-                  behavior: SnackBarBehavior.floating,
-                  duration: Duration(seconds: 5),
-                ),
-              );
-            }
-          });
-        }
-      });
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = ref.watch(themeProvider);
     final authState = ref.watch(authProvider);
+
+    // Listen for auth state changes and handle logout
+    // This MUST be done in build method, not initState
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      // User was authenticated but is now logged out
+      if (previous?.isAuthenticated == true && !next.isAuthenticated) {
+        print('🚪 Auth state changed: User logged out (token refresh failed)');
+        
+        // Navigate to login screen and clear navigation stack
+        _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          '/login',
+          (route) => false,
+        );
+        
+        // Show session expired message
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final context = _navigatorKey.currentContext;
+          if (context != null && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.white),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Your session has expired. Please log in again.',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.orange,
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 5),
+              ),
+            );
+          }
+        });
+      }
+    });
 
     return MaterialApp(
       navigatorKey: _navigatorKey,

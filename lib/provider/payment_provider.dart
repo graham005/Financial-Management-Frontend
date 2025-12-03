@@ -274,3 +274,45 @@ final paymentDetailProvider = StateNotifierProvider.family<PaymentDetailNotifier
   final base = ref.read(paymentProvider.notifier);
   return PaymentDetailNotifier(base._dio, base._setAuthHeader)..fetchPaymentDetail(paymentId);
 });
+
+// Add this new provider for fetching ALL payments (not student-specific)
+class AllPaymentsNotifier extends StateNotifier<AsyncValue<List<Payment>>> {
+  AllPaymentsNotifier(this._dio, this._getAuth) : super(const AsyncValue.loading());
+  final Dio _dio;
+  final Future<void> Function() _getAuth;
+
+  Future<void> fetchAllPayments() async {
+    try {
+      state = const AsyncValue.loading();
+      await _getAuth();
+      
+      // Fetch ALL payments from backend (no studentId filter)
+      final res = await _dio.get("/Payment");
+      
+      if (res.statusCode == 200) {
+        final payments = (res.data as List)
+            .map((e) => Payment.fromJson(e))
+            .toList()
+          ..sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+        
+        print('✅ Fetched ${payments.length} total payments from backend');
+        state = AsyncValue.data(payments);
+      } else if (res.statusCode == 404) {
+        state = const AsyncValue.data([]);
+      } else {
+        state = AsyncValue.error("Failed to load all payments", StackTrace.current);
+      }
+    } catch (e, st) {
+      print('❌ Error fetching all payments: $e');
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  void clear() => state = const AsyncValue.data([]);
+}
+
+// Provider for all payments (not student-specific)
+final allPaymentsProvider = StateNotifierProvider<AllPaymentsNotifier, AsyncValue<List<Payment>>>((ref) {
+  final base = ref.read(paymentProvider.notifier);
+  return AllPaymentsNotifier(base._dio, base._setAuthHeader);
+});
