@@ -399,7 +399,7 @@ class _ThermalReceiptPreviewScreenState extends ConsumerState<ThermalReceiptPrev
         builder: (context, ref, _) {
           final configState = ref.watch(printerConfigProvider);
           final statusAsync = ref.watch(printerStatusProvider);
-          final service = ref.read(thermalPrinterServiceProvider);
+          ref.read(thermalPrinterServiceProvider);
 
           return AlertDialog(
             title: Text(
@@ -515,7 +515,7 @@ class _ThermalReceiptPreviewScreenState extends ConsumerState<ThermalReceiptPrev
                 onPressed: statusAsync.maybeWhen(
                   data: (s) => s.canPrint ? () async {
                     try {
-                      final ok = await ref.read(printReceiptProvider(receipt).future);
+                      await ref.read(printReceiptProvider(receipt).future);
                       if (!mounted) return;
                       await ref.read(printAuditProvider.notifier).logSuccess(
                         receipt, transactionId: receipt.receiptId,

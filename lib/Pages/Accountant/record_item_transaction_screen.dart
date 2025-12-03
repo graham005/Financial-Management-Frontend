@@ -5,7 +5,6 @@ import '../../provider/item_ledger_provider.dart';
 import '../../models/item_transaction.dart';
 import '../../utils/app_colors.dart';
 import '../../models/student_requirement.dart';
-import '../../models/requirement_status.dart';
 import './thermal_receipt_preview_screen.dart';
 
 class RecordTransactionScreen extends ConsumerStatefulWidget {
@@ -42,7 +41,6 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
   Widget build(BuildContext context) {
     final studentRequirementAsync = ref.watch(studentRequirementDetailsProvider(widget.studentRequirementId));
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor, // was AppColors.lightBackground
@@ -418,7 +416,6 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
 
   Widget _buildTransactionItemCard(int index, TransactionItem item) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -569,138 +566,6 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
     );
   }
 
-  void _showAddItemDialog(StudentRequirement requirement) {
-    final itemController = TextEditingController();
-    final quantityController = TextEditingController();
-    final priceController = TextEditingController();
-    final dialogFormKey = GlobalKey<FormState>();
-    String? selectedItemId;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Item'),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
-          child: Form(
-            key: dialogFormKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    labelText: 'Select Item *',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: requirement.items
-                      .where((RequirementStatus item) => item.outstandingQuantity > 0)
-                      .map<DropdownMenuItem<String>>(
-                        (RequirementStatus item) => DropdownMenuItem(
-                          value: item.itemId,
-                          child: Text('${item.itemName} (Outstanding: ${item.outstandingQuantity} ${item.unit})'),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    selectedItemId = value;
-                    final RequirementStatus item = requirement.items
-                        .firstWhere((RequirementStatus i) => i.itemId == value);
-                    itemController.text = item.itemName;
-                    priceController.text = item.unitPrice.toString();
-                  },
-                  validator: (value) => value == null ? 'Please select an item' : null,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: quantityController,
-                        decoration: const InputDecoration(
-                          labelText: 'Quantity *',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Quantity is required';
-                          }
-                          final quantity = int.tryParse(value);
-                          if (quantity == null || quantity <= 0) {
-                            return 'Enter valid quantity';
-                          }
-                          if (selectedItemId != null) {
-                            final RequirementStatus item = requirement.items
-                                .firstWhere((RequirementStatus i) => i.itemId == selectedItemId);
-                            if (quantity > item.outstandingQuantity) {
-                              return 'Cannot exceed outstanding quantity';
-                            }
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: TextFormField(
-                        controller: priceController,
-                        decoration: const InputDecoration(
-                          labelText: 'Unit Price (KES ) *',
-                          border: OutlineInputBorder(),
-                          prefixText: 'KES  ',
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                        ],
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Price is required';
-                          }
-                          final price = double.tryParse(value);
-                          if (price == null || price <= 0) {
-                            return 'Enter valid price';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (dialogFormKey.currentState!.validate()) {
-                final newItem = TransactionItem(
-                  itemId: selectedItemId!,
-                  itemName: itemController.text,
-                  quantity: int.parse(quantityController.text),
-                  unitPrice: double.parse(priceController.text),
-                );
-                
-                setState(() {
-                  _transactionItems.add(newItem);
-                });
-                
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Add', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _recordTransaction({required bool printAfterSave}) async {
     if (!_formKey.currentState!.validate()) return;
