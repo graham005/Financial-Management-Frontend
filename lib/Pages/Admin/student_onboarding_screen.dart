@@ -1,3 +1,4 @@
+import 'package:finance_management_frontend/Pages/Admin/student_promotion_dialog.dart';
 import 'package:finance_management_frontend/provider/student_provider.dart';
 import 'package:finance_management_frontend/widgets/confirmation_dialog.dart';
 import 'package:finance_management_frontend/widgets/student_modal_form.dart';
@@ -42,6 +43,20 @@ class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScree
     }).toList();
   }
 
+  void _showPromotionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StudentPromotionDialog(
+        onPromotionComplete: () {
+          // Refresh student list after promotion
+          ref.read(studentProvider.notifier).fetchStudents();
+        },
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final studentsAsync = ref.watch(studentProvider);
@@ -54,6 +69,21 @@ class _StudentOnboardingScreenState extends ConsumerState<StudentOnboardingScree
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
+        actions: [
+          // Promote Students Button
+                    Tooltip(
+                      message: 'Promote Students',
+                      child: TextButton.icon(
+                        onPressed: _showPromotionDialog,
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(Icons.school_outlined),
+                        label: Text('Promote Students', style: GoogleFonts.underdog()),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
