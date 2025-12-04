@@ -93,8 +93,8 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: requirementList.status == 'Active' 
-                      ? Colors.green.withOpacity(0.1)
-                      : cs.outline.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha:0.1)
+                      : cs.outline.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -231,7 +231,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha:0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -402,7 +402,7 @@ class RequirementListDetailsScreen extends ConsumerWidget {
                           return Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
+                              color: AppColors.primary.withValues(alpha:0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(

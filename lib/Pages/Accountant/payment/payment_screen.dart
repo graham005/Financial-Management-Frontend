@@ -133,7 +133,7 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: outstanding > 0 ? AppColors.error.withOpacity(0.1) : AppColors.success.withOpacity(0.1),
+              color: outstanding > 0 ? AppColors.error.withValues(alpha:0.1) : AppColors.success.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -176,7 +176,7 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
           icon: Icon(icon, size: 16),
           label: Text(label, style: GoogleFonts.underdog(fontSize: 12)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: active ? AppColors.primary : AppColors.primary.withOpacity(0.20),
+            backgroundColor: active ? AppColors.primary : AppColors.primary.withValues(alpha:0.20),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -225,9 +225,9 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha:0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha:0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +245,7 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedTermFilter,
+                  initialValue: _selectedTermFilter,
                   decoration: InputDecoration(
                     labelText: "Term",
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -266,7 +266,7 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<int>(
-                  value: _selectedYearFilter,
+                  initialValue: _selectedYearFilter,
                   decoration: InputDecoration(
                     labelText: "Year",
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -287,7 +287,7 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedPaymentMethodFilter,
+                  initialValue: _selectedPaymentMethodFilter,
                   decoration: InputDecoration(
                     labelText: "Method",
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -308,7 +308,7 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedStatusFilter,
+                  initialValue: _selectedStatusFilter,
                   decoration: InputDecoration(
                     labelText: "Status",
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -460,9 +460,9 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.05),
+                    color: AppColors.primary.withValues(alpha:0.05),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                    border: Border.all(color: AppColors.primary.withValues(alpha:0.2)),
                   ),
                   child: Column(
                     children: [
@@ -541,12 +541,12 @@ class _SimplePaymentScreenState extends ConsumerState<SimplePaymentScreen> {
                                           horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: AppColors.primary
-                                            .withOpacity(0.1),
+                                            .withValues(alpha:0.1),
                                         borderRadius:
                                             BorderRadius.circular(4),
                                         border: Border.all(
                                             color: AppColors.primary
-                                                .withOpacity(0.3)),
+                                                .withValues(alpha:0.3)),
                                       ),
                                       child: Text(
                                         term,
@@ -691,7 +691,7 @@ void _printReceiptWithTransaction(String transactionId) {
                   const SizedBox(width: 16),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedPaymentMethod,
+                      initialValue: _selectedPaymentMethod,
                       items: paymentMethods
                           .map((m) => DropdownMenuItem(value: m, child: Text(m, style: GoogleFonts.underdog())))
                           .toList(),
@@ -782,9 +782,9 @@ void _printReceiptWithTransaction(String transactionId) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha:0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha:0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -884,10 +884,10 @@ void _printReceiptWithTransaction(String transactionId) {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: fee.isOverdue ? AppColors.error.withOpacity(0.05) : AppColors.primary.withOpacity(0.05),
+                color: fee.isOverdue ? AppColors.error.withValues(alpha:0.05) : AppColors.primary.withValues(alpha:0.05),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: fee.isOverdue ? AppColors.error.withOpacity(0.2) : AppColors.primary.withOpacity(0.2)
+                  color: fee.isOverdue ? AppColors.error.withValues(alpha:0.2) : AppColors.primary.withValues(alpha:0.2)
                 ),
               ),
               child: Row(
@@ -1040,7 +1040,7 @@ void _printReceiptWithTransaction(String transactionId) {
   Widget _noDataCard(String message) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: AppColors.primary.withOpacity(0.05),
+      color: AppColors.primary.withValues(alpha:0.05),
       borderRadius: BorderRadius.circular(14),
     ),
     child: Center(child: Text(message, style: GoogleFonts.underdog())),

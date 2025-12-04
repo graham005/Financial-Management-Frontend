@@ -119,7 +119,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                     'This may take a few moments',
                     style: GoogleFonts.underdog(
                       fontSize: 11,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha:0.8),
                     ),
                   ),
                 ],
@@ -449,7 +449,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
         color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -460,7 +460,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Icon(Icons.filter_alt, size: 16, color: AppColors.primary),
@@ -506,8 +506,8 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
         label: Text(label, style: GoogleFonts.underdog(fontSize: 12, fontWeight: FontWeight.w600)),
         deleteIcon: const Icon(Icons.close, size: 16),
         onDeleted: onRemove,
-        backgroundColor: AppColors.primary.withOpacity(0.12),
-        side: BorderSide(color: AppColors.primary.withOpacity(0.3), width: 1.5),
+        backgroundColor: AppColors.primary.withValues(alpha:0.12),
+        side: BorderSide(color: AppColors.primary.withValues(alpha:0.3), width: 1.5),
         labelPadding: const EdgeInsets.symmetric(horizontal: 8),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         deleteIconColor: AppColors.primary,
@@ -991,9 +991,9 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
           padding: const EdgeInsets.all(24),
           margin: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.error.withOpacity(0.1),
+            color: AppColors.error.withValues(alpha:0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.error.withOpacity(0.3)),
+            border: Border.all(color: AppColors.error.withValues(alpha:0.3)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1149,7 +1149,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: AppColors.primary.withValues(alpha:0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -1165,7 +1165,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                         'Total Revenue',
                         style: GoogleFonts.underdog(
                           fontSize: 18,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha:0.9),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1185,7 +1185,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                     '${report.term} ${report.year}',
                     style: GoogleFonts.underdog(
                       fontSize: 16,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha:0.8),
                     ),
                   ),
                 ],
@@ -1334,7 +1334,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.purple.withOpacity(0.3),
+                    color: Colors.purple.withValues(alpha:0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -1349,7 +1349,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                       Text(
                         'Collection Rate',
                         style: GoogleFonts.underdog(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha:0.9),
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
@@ -1459,9 +1459,9 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                border: Border.all(color: AppColors.primary.withValues(alpha:0.3)),
               ),
               child: Row(
                 children: [
@@ -1561,7 +1561,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
             color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha:0.2),
             ),
           ),
           child: Column(
@@ -1570,7 +1570,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
               Icon(
                 Icons.person_search,
                 size: 80,
-                color: AppColors.primary.withOpacity(0.5),
+                color: AppColors.primary.withValues(alpha:0.5),
               ),
               const SizedBox(height: 24),
               Text(
@@ -1625,7 +1625,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: AppColors.primary.withValues(alpha:0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -1666,7 +1666,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                               '${report.admissionNumber} • ${report.grade}',
                               style: GoogleFonts.underdog(
                                 fontSize: 14,
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha:0.9),
                               ),
                             ),
                           ],
@@ -1751,13 +1751,13 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
       children: [
         Row(
           children: [
-            Icon(icon, color: Colors.white.withOpacity(0.8), size: 18),
+            Icon(icon, color: Colors.white.withValues(alpha:0.8), size: 18),
             const SizedBox(width: 6),
             Text(
               label,
               style: GoogleFonts.underdog(
                 fontSize: 12,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha:0.8),
               ),
             ),
           ],
@@ -1846,10 +1846,10 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha:0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -1862,7 +1862,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: color.withOpacity(0.15),
+                backgroundColor: color.withValues(alpha:0.15),
                 child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 12),
@@ -1906,7 +1906,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
-          headingRowColor: WidgetStateProperty.all(AppColors.primary.withOpacity(0.1)),
+          headingRowColor: WidgetStateProperty.all(AppColors.primary.withValues(alpha:0.1)),
           columns: columns
               .map((col) => DataColumn(
                     label: Text(
@@ -1965,7 +1965,7 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
                       subtitle,
                       style: GoogleFonts.underdog(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha:0.9),
                       ),
                     ),
                   ],

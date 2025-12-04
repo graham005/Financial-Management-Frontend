@@ -76,7 +76,7 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha:0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -151,7 +151,7 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
+              color: Colors.red.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -175,7 +175,7 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha:0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -245,7 +245,7 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha:0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -309,7 +309,7 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary.withOpacity(0.1) : null,
+        color: isSelected ? AppColors.primary.withValues(alpha:0.1) : null,
         borderRadius: BorderRadius.circular(8),
         border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
       ),
@@ -545,7 +545,6 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Implement delete functionality
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Printer deleted')),

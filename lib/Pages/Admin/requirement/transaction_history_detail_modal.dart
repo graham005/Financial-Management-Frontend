@@ -49,7 +49,7 @@ class TransactionHistoryDetailModal extends ConsumerWidget {
         Row(
           children: [
             CircleAvatar(
-              backgroundColor: typeColor.withOpacity(0.15),
+              backgroundColor: typeColor.withValues(alpha:0.15),
               foregroundColor: typeColor,
               child: Icon(isMoney ? Icons.payments : Icons.inventory_2),
             ),
@@ -64,7 +64,7 @@ class TransactionHistoryDetailModal extends ConsumerWidget {
                     children: [
                       _chip(tx.transactionType, typeColor),
                       const SizedBox(width: 6),
-                      _chip(df.format(tx.transactionDate.toLocal()), theme.colorScheme.primary.withOpacity(0.75)),
+                      _chip(df.format(tx.transactionDate.toLocal()), theme.colorScheme.primary.withValues(alpha:0.75)),
                       const SizedBox(width: 6),
                       _chip('By ${tx.recordedBy}', Colors.indigo),
                     ],
@@ -132,7 +132,7 @@ class TransactionHistoryDetailModal extends ConsumerWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha:0.2)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
     );
@@ -155,9 +155,9 @@ class TransactionHistoryDetailModal extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha:0.12),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha:0.4)),
       ),
       child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
     );

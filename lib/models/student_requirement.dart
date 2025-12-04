@@ -45,7 +45,7 @@ class StudentRequirement {
           raw['results'],
           raw['value'],
           raw['\$values'],
-        ].where((v) => v is List).cast<List>().toList();
+        ].whereType<List>().cast<List>().toList();
         if (candidates.isNotEmpty) {
           return candidates.first
               .map((e) => RequirementStatus.fromJson(e as Map<String, dynamic>))

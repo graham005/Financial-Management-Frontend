@@ -63,7 +63,7 @@ class RequirementTransactionHistoryScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 6, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 6, offset: const Offset(0, 2))],
       ),
       child: Row(
         children: [
@@ -79,7 +79,7 @@ class RequirementTransactionHistoryScreen extends ConsumerWidget {
     return Expanded(
       child: Column(
         children: [
-          CircleAvatar(radius: 16, backgroundColor: color.withOpacity(0.15), child: Icon(icon, color: color)),
+          CircleAvatar(radius: 16, backgroundColor: color.withValues(alpha:0.15), child: Icon(icon, color: color)),
           const SizedBox(height: 6),
           Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
@@ -114,7 +114,7 @@ class RequirementTransactionHistoryScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                backgroundColor: typeColor.withOpacity(0.15),
+                backgroundColor: typeColor.withValues(alpha:0.15),
                 foregroundColor: typeColor,
                 child: Icon(isMoney ? Icons.payments : Icons.inventory_2),
               ),
@@ -130,7 +130,7 @@ class RequirementTransactionHistoryScreen extends ConsumerWidget {
                       runSpacing: -4,
                       children: [
                         _chip(e.transactionType, typeColor),
-                        _chip(dateStr, theme.colorScheme.primary.withOpacity(0.75)),
+                        _chip(dateStr, theme.colorScheme.primary.withValues(alpha:0.75)),
                         _chip('By ${e.recordedBy}', Colors.indigo),
                       ],
                     ),
@@ -163,9 +163,9 @@ class RequirementTransactionHistoryScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha:0.12),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha:0.4)),
       ),
       child: Text(
         text,

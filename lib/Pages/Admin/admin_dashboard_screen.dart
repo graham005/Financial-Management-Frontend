@@ -113,7 +113,7 @@ class _DashboardErrorWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.error.withOpacity(0.3), width: 2),
+          border: Border.all(color: AppColors.error.withValues(alpha:0.3), width: 2),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -245,7 +245,7 @@ class _WelcomeHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha:0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -256,7 +256,7 @@ class _WelcomeHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha:0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -283,7 +283,7 @@ class _WelcomeHeader extends StatelessWidget {
                   DateFormat('EEEE, MMMM d, yyyy').format(now),
                   style: GoogleFonts.underdog(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha:0.9),
                   ),
                 ),
               ],
@@ -292,7 +292,7 @@ class _WelcomeHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha:0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -414,7 +414,7 @@ class _MetricCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -428,7 +428,7 @@ class _MetricCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 24),
@@ -436,7 +436,7 @@ class _MetricCard extends StatelessWidget {
               const Spacer(),
               Icon(
                 Icons.trending_up,
-                color: color.withOpacity(0.5),
+                color: color.withValues(alpha:0.5),
                 size: 20,
               ),
             ],
@@ -489,15 +489,15 @@ class _FinancialOverviewSection extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.success.withOpacity(0.1),
-            AppColors.success.withOpacity(0.05),
+            AppColors.success.withValues(alpha:0.1),
+            AppColors.success.withValues(alpha:0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.success.withOpacity(0.3),
+          color: AppColors.success.withValues(alpha:0.3),
           width: 2,
         ),
       ),
@@ -509,7 +509,7 @@ class _FinancialOverviewSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.2),
+                  color: AppColors.success.withValues(alpha:0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.account_balance_wallet, color: AppColors.success, size: 28),
@@ -571,7 +571,7 @@ class _FinancialOverviewSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Divider(color: AppColors.success.withOpacity(0.3)),
+          Divider(color: AppColors.success.withValues(alpha:0.3)),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -639,7 +639,7 @@ class _FinancialMetric extends StatelessWidget {
         color: isDark ? AppColors.darkBackground : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha:0.3),
         ),
       ),
       child: Column(
@@ -713,7 +713,7 @@ class _MiniFinancialCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -851,10 +851,10 @@ class _QuickActionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha:0.3),
             width: 2,
           ),
         ),
@@ -927,7 +927,7 @@ class _GradeAnalyticsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
+                  color: AppColors.primary.withValues(alpha:0.08),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -997,7 +997,7 @@ class _GradeAnalyticsCompactItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkBackground : Colors.grey[50],
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: collectionColor.withOpacity(0.25)),
+        border: Border.all(color: collectionColor.withValues(alpha:0.25)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1021,7 +1021,7 @@ class _GradeAnalyticsCompactItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: collectionColor.withOpacity(0.12),
+                  color: collectionColor.withValues(alpha:0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -1124,9 +1124,9 @@ class _MiniKpi extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // tighter
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
+        color: color.withValues(alpha:0.06),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.12)),
+        border: Border.all(color: color.withValues(alpha:0.12)),
       ),
       child: Row(
         children: [
@@ -1478,7 +1478,7 @@ class _RevenueByGradeChart extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 AppColors.success,
-                AppColors.success.withOpacity(0.7),
+                AppColors.success.withValues(alpha:0.7),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -1511,15 +1511,15 @@ class _ItemLedgerStatsCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.accent.withOpacity(0.1),
-            AppColors.accent.withOpacity(0.05),
+            AppColors.accent.withValues(alpha:0.1),
+            AppColors.accent.withValues(alpha:0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.accent.withOpacity(0.3),
+          color: AppColors.accent.withValues(alpha:0.3),
           width: 2,
         ),
       ),
@@ -1531,7 +1531,7 @@ class _ItemLedgerStatsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.2),
+                  color: AppColors.accent.withValues(alpha:0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.checklist, color: AppColors.accent, size: 28),
@@ -1617,15 +1617,15 @@ class _PrintStatisticsCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.secondary.withOpacity(0.1),
-            AppColors.secondary.withOpacity(0.05),
+            AppColors.secondary.withValues(alpha:0.1),
+            AppColors.secondary.withValues(alpha:0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.secondary.withOpacity(0.3),
+          color: AppColors.secondary.withValues(alpha:0.3),
           width: 2,
         ),
       ),
@@ -1637,7 +1637,7 @@ class _PrintStatisticsCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.2),
+                  color: AppColors.secondary.withValues(alpha:0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(Icons.print, color: AppColors.secondary, size: 28),
@@ -1862,7 +1862,7 @@ class _ActivityItem extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha:0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: color, size: 20),
@@ -1904,7 +1904,7 @@ class _ActivityItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.success.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

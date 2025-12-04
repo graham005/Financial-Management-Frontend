@@ -43,11 +43,11 @@ class PrintHistoryScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.1), blurRadius: 8, offset: const Offset(0, 2))],
                     ),
                     child: ListView.separated(
                       itemCount: entries.length,
-                      separatorBuilder: (_, __) => Divider(color: Colors.grey.withOpacity(0.2), height: 1),
+                      separatorBuilder: (_, __) => Divider(color: Colors.grey.withValues(alpha:0.2), height: 1),
                       itemBuilder: (context, i) {
                         final e = entries[i];
                         return ListTile(
@@ -95,7 +95,7 @@ class PrintHistoryScreen extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.history, size: 56, color: Colors.grey.withOpacity(0.6)),
+          Icon(Icons.history, size: 56, color: Colors.grey.withValues(alpha:0.6)),
           const SizedBox(height: 12),
           Text('No print activity yet', style: GoogleFonts.underdog(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),

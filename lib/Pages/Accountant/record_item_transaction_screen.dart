@@ -225,7 +225,7 @@ class _RecordTransactionScreenState extends ConsumerState<RecordTransactionScree
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: cs.surfaceVariant, // was Colors.blue.withOpacity(0.1)
+              color: cs.surfaceVariant, // was Colors.blue.withValues(alpha:0.1)
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

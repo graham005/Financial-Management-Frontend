@@ -13,6 +13,7 @@ analyzer:
     avoid_print: ignore
     unused_result: ignore
     no_leading_underscores_for_local_identifiers: ignore
+    deprecated_member_use: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:

@@ -89,8 +89,6 @@ class AuthProvider extends StateNotifier<AuthState> {
           await prefs.setString("username", username);
         }
 
-        print('✅ Login successful');
-        print('✅ Access Token: ${token.substring(0, 20)}...');
         if (refreshToken != null) {
           print('✅ Refresh Token: ${refreshToken.substring(0, 20)}...');
         }

@@ -65,7 +65,7 @@ class ReportsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha:0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -92,7 +92,7 @@ class ReportsScreen extends ConsumerWidget {
                   'Generate and export comprehensive financial reports',
                   style: GoogleFonts.underdog(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha:0.9),
                   ),
                 ),
               ],
@@ -111,7 +111,7 @@ class ReportsScreen extends ConsumerWidget {
       error: (error, _) => Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.error.withOpacity(0.1),
+          color: AppColors.error.withValues(alpha:0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -182,10 +182,10 @@ class ReportsScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha:0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -198,7 +198,7 @@ class ReportsScreen extends ConsumerWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: color.withOpacity(0.15),
+                backgroundColor: color.withValues(alpha:0.15),
                 child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 12),
@@ -317,11 +317,11 @@ class ReportsScreen extends ConsumerWidget {
           color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: config.color.withOpacity(0.3),
+            color: config.color.withValues(alpha:0.3),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha:0.05),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -332,7 +332,7 @@ class ReportsScreen extends ConsumerWidget {
           children: [
             CircleAvatar(
               radius: 24,
-              backgroundColor: config.color.withOpacity(0.15),
+              backgroundColor: config.color.withValues(alpha:0.15),
               child: Icon(config.icon, color: config.color, size: 24),
             ),
             const SizedBox(height: 12),

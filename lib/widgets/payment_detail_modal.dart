@@ -29,7 +29,7 @@ class PaymentDetailModal extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha:0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -42,7 +42,7 @@ class PaymentDetailModal extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha:0.1),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -65,7 +65,7 @@ class PaymentDetailModal extends ConsumerWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.1),
+                      backgroundColor: Colors.white.withValues(alpha:0.1),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -126,7 +126,7 @@ class PaymentDetailModal extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(paymentDetail.status).withOpacity(0.1),
+                  color: _getStatusColor(paymentDetail.status).withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: _getStatusColor(paymentDetail.status),
@@ -169,7 +169,7 @@ class PaymentDetailModal extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha:0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -185,10 +185,10 @@ class PaymentDetailModal extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
+                color: AppColors.primary.withValues(alpha:0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha:0.2),
                 ),
               ),
               child: Row(
@@ -244,10 +244,10 @@ class PaymentDetailModal extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.success.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.success.withOpacity(0.3),
+                color: AppColors.success.withValues(alpha:0.3),
               ),
             ),
             child: Row(

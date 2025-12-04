@@ -111,7 +111,7 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(requirement.status).withOpacity(0.1),
+                  color: _getStatusColor(requirement.status).withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -138,7 +138,7 @@ class StudentRequirementDetailsScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.1), // theme-aware shadow
+            color: theme.shadowColor.withValues(alpha:0.1), // theme-aware shadow
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

@@ -5,8 +5,6 @@ import 'other_fee_provider.dart';
 import 'student_provider.dart';
 import 'user_management.dart';
 import 'payment_provider.dart';
-import 'item_ledger_provider.dart';
-import 'print_audit_provider.dart';
 import '../models/grade.dart';
 import '../models/fee_structure.dart';
 import '../models/other_fee.dart';
@@ -200,7 +198,6 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
     if (data is AsyncValue<List<Payment>>) {
       return data.when(
         data: (list) {
-          print('✅ Dashboard received ${list.length} payments');
           return list;
         },
         loading: () => [],
@@ -260,26 +257,8 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
     return [];
   }
 
-  List<dynamic> _getRequirementLists(dynamic data) {
-    if (data is RequirementListState) {
-      return data.lists;
-    }
-    return [];
-  }
 
-  List<dynamic> _getStudentRequirements(dynamic data) {
-    if (data is StudentRequirementState) {
-      return data.requirements;
-    }
-    return [];
-  }
 
-  List<dynamic> _getPrintHistory(dynamic data) {
-    if (data is List) {
-      return data;
-    }
-    return [];
-  }
 
   Future<void> _safeCall(Future<void> Function() call) async {
     try {
@@ -327,7 +306,7 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
     double revenueToday = 0.0;
 
     for (final payment in payments) {
-      final amount = payment.amount ?? 0.0;
+      final amount = payment.amount;
       totalRevenueCollected += amount;
 
       final paymentDate = payment.paymentDate;
@@ -370,10 +349,6 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
           dyn.expectedTotal ??
           0.0,
         );
-        
-        print('✅ From Revenue Summary:');
-        print('   Total Revenue: KES ${totalRevenueCollected.toStringAsFixed(2)}');
-        print('   Expected Revenue: KES ${totalExpectedRevenue.toStringAsFixed(2)}');
       } catch (e) {
         print('⚠️ Error parsing revenue summary: $e');
       }
@@ -384,14 +359,10 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
       try {
         // Use ACTUAL property names from OutstandingFeesReport
         totalOutstandingFees = _parseDouble(outstandingFeesReport.totalOutstanding);
-        studentsWithArrears = outstandingFeesReport.studentsWithArrears ?? 0;
+        studentsWithArrears = outstandingFeesReport.studentsWithArrears;
         
         // Calculate students paid in full
         studentsPaidFull = totalStudents - studentsWithArrears;
-        
-        print('✅ From Outstanding Fees Report:');
-        print('   Total Outstanding: KES ${totalOutstandingFees.toStringAsFixed(2)}');
-        print('   Students with Arrears: $studentsWithArrears');
       } catch (e) {
         print('⚠️ Error parsing outstanding fees: $e');
       }
@@ -402,9 +373,6 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
       try {
         // Use ACTUAL property names from CollectionRateReport
         collectionRate = _parseDouble(collectionRateReport.collectionRate);
-        
-        print('✅ From Collection Rate Report:');
-        print('   Collection Rate: ${collectionRate.toStringAsFixed(1)}%');
       } catch (e) {
         print('⚠️ Error parsing collection rate: $e');
       }
@@ -439,7 +407,7 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
           ),
         );
 
-        totalExpectedRevenue += (feeStructure.totalFee?.toDouble() ?? 0.0) * studentsInGrade;
+        totalExpectedRevenue += (feeStructure.totalFee.toDouble()) * studentsInGrade;
       }
     }
 
@@ -463,27 +431,25 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
     Map<String, double> reportRevenueByGrade = {};
     Map<String, double> reportOutstandingByGrade = {};
     
-    if (revenueSummary != null && revenueSummary.byGrade != null) {
+    if (revenueSummary != null) {
       // Convert list of RevenueByGrade objects into a Map<String,double>
-      for (final rg in revenueSummary.byGrade!) {
+      for (final rg in revenueSummary.byGrade) {
         try {
           reportRevenueByGrade[rg.gradeName] = _parseDouble(rg.amount);
         } catch (_) {
           // ignore malformed entries
         }
       }
-      print('📊 Revenue by grade from report: $reportRevenueByGrade');
     }
     
-    if (outstandingFeesReport != null && outstandingFeesReport.byGrade != null) {
-      for (final og in outstandingFeesReport.byGrade!) {
+    if (outstandingFeesReport != null) {
+      for (final og in outstandingFeesReport.byGrade) {
         try {
           reportOutstandingByGrade[og.gradeName] = _parseDouble(og.totalOutstanding);
         } catch (_) {
           // ignore malformed entries
         }
       }
-      print('📊 Outstanding by grade from report: $reportOutstandingByGrade');
     }
 
     for (final grade in grades) {
@@ -516,7 +482,7 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
         ),
       );
 
-      final totalFeeStructure = feeStructure.totalFee?.toDouble() ?? 0.0;
+      final totalFeeStructure = feeStructure.totalFee.toDouble();
 
       // Get revenue from report or calculate from payments
       double gradeRevenue = reportRevenueByGrade[grade.name] ?? 0.0;
@@ -537,7 +503,7 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
           }
           if (studentId != null) {
             final studentPayments = payments.where((p) => p.studentId == studentId);
-            gradeRevenue += studentPayments.fold<double>(0.0, (sum, p) => sum + (p.amount ?? 0.0));
+            gradeRevenue += studentPayments.fold<double>(0.0, (sum, p) => sum + (p.amount));
           }
         }
       }
@@ -635,14 +601,6 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
       printHistory,
     );
 
-    print('📊 Dashboard Summary:');
-    print('   Total Revenue: KES ${totalRevenueCollected.toStringAsFixed(2)}');
-    print('   Expected Revenue: KES ${totalExpectedRevenue.toStringAsFixed(2)}');
-    print('   Outstanding Fees: KES ${totalOutstandingFees.toStringAsFixed(2)}');
-    print('   Collection Rate: ${collectionRate.toStringAsFixed(1)}%');
-    print('   Students with Arrears: $studentsWithArrears / $totalStudents');
-    print('   Grade Analytics: ${gradeAnalytics.length} grades processed');
-
     return DashboardData(
       totalUsers: totalUsers,
       totalStudents: totalStudents,
@@ -708,7 +666,7 @@ class DashboardProvider extends StateNotifier<AsyncValue<DashboardData>> {
         description: "Payment from $studentName",
         time: payment.paymentDate,
         type: "payment",
-        amount: "KES ${payment.amount?.toStringAsFixed(2) ?? '0.00'}",
+        amount: "KES ${payment.amount.toStringAsFixed(2)}",
       ));
     }
 

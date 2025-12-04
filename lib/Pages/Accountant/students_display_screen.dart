@@ -89,7 +89,7 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha:0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -103,7 +103,7 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                               color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: AppColors.primary.withOpacity(0.3),
+                                color: AppColors.primary.withValues(alpha:0.3),
                               ),
                             ),
                             child: TextField(
@@ -137,7 +137,7 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                                 color: isDark ? AppColors.darkBackground : AppColors.lightBackground,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.3),
+                                  color: AppColors.primary.withValues(alpha:0.3),
                                 ),
                               ),
                               child: DropdownButton<String>(
@@ -176,7 +176,7 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha:0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -191,7 +191,7 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                               Icon(
                                 Icons.error,
                                 size: 64,
-                                color: AppColors.error.withOpacity(0.5),
+                                color: AppColors.error.withValues(alpha:0.5),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -230,7 +230,7 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                                   Icon(
                                     Icons.school,
                                     size: 64,
-                                    color: AppColors.primary.withOpacity(0.5),
+                                    color: AppColors.primary.withValues(alpha:0.5),
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
@@ -251,7 +251,7 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                             child: Center(
                               child: DataTable(
                                 headingRowColor: WidgetStateProperty.all(
-                                  AppColors.primary.withOpacity(0.1),
+                                  AppColors.primary.withValues(alpha:0.1),
                                 ),
                                 columns: [
                                   DataColumn(label: Text("Admission No.", style: GoogleFonts.underdog(fontWeight: FontWeight.w600))),
@@ -269,10 +269,10 @@ class _StudentsDisplayScreenState extends ConsumerState<StudentsDisplayScreen> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: AppColors.primary.withOpacity(0.2),
+                                            color: AppColors.primary.withValues(alpha:0.2),
                                             borderRadius: BorderRadius.circular(12),
                                             border: Border.all(
-                                              color: AppColors.primary.withOpacity(0.3),
+                                              color: AppColors.primary.withValues(alpha:0.3),
                                             ),
                                           ),
                                           child: Text(

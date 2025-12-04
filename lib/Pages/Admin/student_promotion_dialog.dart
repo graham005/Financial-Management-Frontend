@@ -55,7 +55,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha:0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(Icons.school, color: Colors.white, size: 28),
@@ -78,7 +78,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
                           _currentStep == 0 ? 'Select students to promote' : 'Review and confirm',
                           style: GoogleFonts.underdog(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha:0.9),
                           ),
                         ),
                       ],
@@ -116,9 +116,9 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
                     padding: const EdgeInsets.all(32),
                     margin: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.1),
+                      color: AppColors.error.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.error.withOpacity(0.3), width: 2),
+                      border: Border.all(color: AppColors.error.withValues(alpha:0.3), width: 2),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -295,19 +295,19 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withOpacity(0.1),
-                  AppColors.secondary.withOpacity(0.05),
+                  AppColors.primary.withValues(alpha:0.1),
+                  AppColors.secondary.withValues(alpha:0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primary.withValues(alpha:0.3)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.15),
+                    color: AppColors.primary.withValues(alpha:0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(Icons.info_outline, color: AppColors.primary, size: 24),
@@ -373,7 +373,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: group.isGraduation
-              ? Colors.amber.withOpacity(0.5)
+              ? Colors.amber.withValues(alpha:0.5)
               : isDark
                   ? Colors.white12
                   : Colors.black12,
@@ -381,7 +381,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -395,8 +395,8 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: group.isGraduation
-                  ? Colors.amber.withOpacity(0.1)
-                  : AppColors.primary.withOpacity(0.05),
+                  ? Colors.amber.withValues(alpha:0.1)
+                  : AppColors.primary.withValues(alpha:0.05),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
@@ -405,8 +405,8 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: group.isGraduation
-                        ? Colors.amber.withOpacity(0.2)
-                        : AppColors.primary.withOpacity(0.15),
+                        ? Colors.amber.withValues(alpha:0.2)
+                        : AppColors.primary.withValues(alpha:0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -520,7 +520,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
                   style: GoogleFonts.underdog(fontSize: 12),
                 ),
                 secondary: CircleAvatar(
-                  backgroundColor: AppColors.primary.withOpacity(0.1),
+                  backgroundColor: AppColors.primary.withValues(alpha:0.1),
                   child: Text(
                     student.name.isNotEmpty ? student.name[0].toUpperCase() : '?',
                     style: GoogleFonts.underdog(
@@ -565,19 +565,19 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.success.withOpacity(0.1),
-                  AppColors.success.withOpacity(0.05),
+                  AppColors.success.withValues(alpha:0.1),
+                  AppColors.success.withValues(alpha:0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.success.withOpacity(0.3), width: 2),
+              border: Border.all(color: AppColors.success.withValues(alpha:0.3), width: 2),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.2),
+                    color: AppColors.success.withValues(alpha:0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(Icons.check_circle, color: AppColors.success, size: 28),
@@ -632,7 +632,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.05),
+                      color: AppColors.primary.withValues(alpha:0.05),
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
                     child: Row(
@@ -651,7 +651,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.15),
+                            color: AppColors.primary.withValues(alpha:0.15),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -671,7 +671,7 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
                       dense: true,
                       leading: CircleAvatar(
                         radius: 16,
-                        backgroundColor: AppColors.primary.withOpacity(0.1),
+                        backgroundColor: AppColors.primary.withValues(alpha:0.1),
                         child: Text(
                           student.name.isNotEmpty ? student.name[0].toUpperCase() : '?',
                           style: GoogleFonts.underdog(
@@ -702,9 +702,9 @@ class _StudentPromotionDialogState extends ConsumerState<StudentPromotionDialog>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: Colors.orange.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+              border: Border.all(color: Colors.orange.withValues(alpha:0.3)),
             ),
             child: Row(
               children: [

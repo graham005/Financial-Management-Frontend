@@ -227,7 +227,7 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha:0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -316,7 +316,7 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
                   color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2)),
+                    BoxShadow(color: Colors.black.withValues(alpha:0.1), blurRadius: 8, offset: const Offset(0, 2)),
                   ],
                 ),
                 child: filteredOtherFees.isEmpty
@@ -324,7 +324,7 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.receipt_long, size: 64, color: AppColors.primary.withOpacity(0.5)),
+                            Icon(Icons.receipt_long, size: 64, color: AppColors.primary.withValues(alpha:0.5)),
                             const SizedBox(height: 16),
                             Text("No other fees found", style: GoogleFonts.underdog(fontSize: 18, fontWeight: FontWeight.w600)),
                           ],
@@ -334,7 +334,7 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: DataTable(
-                            headingRowColor: WidgetStateProperty.all(AppColors.primary.withOpacity(0.2)),
+                            headingRowColor: WidgetStateProperty.all(AppColors.primary.withValues(alpha:0.2)),
                             columns: [
                               if (_selectedStatusFilter == 'Active')
                                 DataColumn(
@@ -396,7 +396,7 @@ class _OtherFeesScreenState extends ConsumerState<OtherFeesScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: fee.isActive ? Colors.green.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
+                                      color: fee.isActive ? Colors.green.withValues(alpha:0.2) : Colors.grey.withValues(alpha:0.2),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(fee.status, style: GoogleFonts.underdog(fontSize: 11, fontWeight: FontWeight.w600)),
