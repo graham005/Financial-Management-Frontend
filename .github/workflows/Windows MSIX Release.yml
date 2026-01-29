@@ -12,6 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Create .env from secrets
+        shell: pwsh
+        run: |
+          @"
+          API_BASE_URL=${{ secrets.API_BASE_URL }}
+          "@" | Out-File -FilePath .env -Encoding utf8
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
