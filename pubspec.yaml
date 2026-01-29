@@ -68,6 +68,23 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  msix: ^3.16.6
+
+msix_config:
+  display_name: Elite Destiny Academy Finance App
+  publisher_display_name: Elite Destiny Academy
+  identity_name: com.elitedestiny.finance
+  msix_version: 1.0.0.0            # bump this each release (must increase)
+  logo_path: assets/icon.png        # provide a 256x256 logo
+  capabilities: internetClient
+  certificate_path: cert/financeapp.pfx
+  certificate_password: ${CERT_PASSWORD}    # supplied by GitHub secret
+  app_installer:
+    enable: true
+    uri: https://github.com/graham005/Financial-Management-Frontend/releases/latest/download/EliteFinance.appinstaller
+    hours_between_update_checks: 24
+    show_prompt: true
+    update_blocks_activation: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

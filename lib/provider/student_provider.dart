@@ -85,6 +85,42 @@ class StudentProvider extends StateNotifier<AsyncValue<List<Student>>> {
     }
   }
 
+  // Helper to safely extract a list of student maps from various API shapes
+  List<Map<String, dynamic>> _extractStudentMaps(dynamic raw) {
+    if (raw is List) {
+      return raw
+          .where((e) => e is Map)
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+    if (raw is Map) {
+      final map = Map<String, dynamic>.from(raw as Map);
+      final candidates = [
+        map['students'],
+        map['data'],
+        map['results'],
+        map['value'],
+        map['items'],
+        map['records'],
+        map[r'$values'],
+      ];
+      for (final c in candidates) {
+        if (c is List) {
+          return c
+              .where((e) => e is Map)
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+        }
+      }
+      // If it looks like a single student object, wrap it
+      final looksLikeStudent = map.containsKey('admissionNumber') ||
+          map.containsKey('firstName') ||
+          map.containsKey('name');
+      if (looksLikeStudent) return [map];
+    }
+    return <Map<String, dynamic>>[];
+  }
+
   Future<void> fetchStudents() async {
     try {
       state = const AsyncValue.loading();
@@ -93,8 +129,9 @@ class StudentProvider extends StateNotifier<AsyncValue<List<Student>>> {
       final response = await _dio.get("/admin/Student");
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        final students = data.map((json) => Student.fromJson(json)).toList();
+        final raw = response.data;
+        final studentMaps = _extractStudentMaps(raw);
+        final students = studentMaps.map((m) => Student.fromJson(m)).toList();
         state = AsyncValue.data(students);
       } else {
         state = AsyncValue.error("Failed to fetch students", StackTrace.current);
