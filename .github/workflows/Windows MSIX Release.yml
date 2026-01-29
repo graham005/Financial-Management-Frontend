@@ -1,0 +1,54 @@
+name: Windows MSIX Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v1.0.0*'    # e.g., v1.0.0
+
+jobs:
+  build-msix:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Prepare signing cert
+        shell: bash
+        env:
+          CERT_PFX: ${{ secrets.CERT_PFX_BASE64 }}     # base64 of your .pfx
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+        run: |
+          mkdir -p cert
+          echo "$CERT_PFX" | base64 -d > cert/financeapp.pfx
+          echo "CERT_PASSWORD=$CERT_PASSWORD" >> $GITHUB_ENV
+
+      - name: Build MSIX + App Installer
+        run: |
+          dart pub global activate msix
+          dart pub global run msix:create
+
+      - name: Prepare release assets (fixed names)
+        shell: bash
+        run: |
+          mkdir -p release
+          msix_path=$(ls -1 build/**/*.msix | head -n 1)
+          appinstaller_path=$(ls -1 build/**/*.appinstaller | head -n 1)
+          cp "$msix_path" "release/EliteFinance.msix"
+          cp "$appinstaller_path" "release/EliteFinance.appinstaller"
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
