@@ -75,7 +75,7 @@ msix_config:
   publisher_display_name: Elite Destiny Academy
   identity_name: com.elitedestiny.finance
   msix_version: 1.0.0.0            # bump this each release (must increase)
-  logo_path: assets/icon.png        # provide a 256x256 logo
+  logo_path: assets/icon.ico        # provide a 256x256 logo
   capabilities: internetClient
   certificate_path: cert/financeapp.pfx
   certificate_password: ${CERT_PASSWORD}    # supplied by GitHub secret
