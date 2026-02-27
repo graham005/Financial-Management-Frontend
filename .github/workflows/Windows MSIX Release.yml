@@ -78,16 +78,37 @@ jobs:
           dart pub global run msix:create
 
       - name: Prepare release assets
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir -p release
-          msix_path=$(find build -name "*.msix" | head -n 1)
-          appinstaller_path=$(find build -name "*.appinstaller" | head -n 1)
-          if [ -z "$msix_path" ]; then echo "❌ No .msix file found!"; exit 1; fi
-          if [ -z "$appinstaller_path" ]; then echo "❌ No .appinstaller file found!"; exit 1; fi
-          cp "$msix_path" "release/EliteFinance.msix"
-          cp "$appinstaller_path" "release/EliteFinance.appinstaller"
-          echo "✅ Release assets prepared"
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+
+          # Show all build output for debugging
+          Write-Host "🔍 Searching for MSIX files..."
+          Get-ChildItem -Path build -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "Found MSIX: $($_.FullName)"
+          }
+          Write-Host "🔍 Searching for AppInstaller files..."
+          Get-ChildItem -Path build -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "Found AppInstaller: $($_.FullName)"
+          }
+
+          # Copy MSIX
+          $msix = Get-ChildItem -Path build -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -eq $msix) {
+            Write-Error "❌ No .msix file found!"
+            exit 1
+          }
+          Copy-Item $msix.FullName "release/EliteFinance.msix"
+          Write-Host "✅ Copied MSIX: $($msix.FullName)"
+
+          # Copy AppInstaller
+          $appinstaller = Get-ChildItem -Path build -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -eq $appinstaller) {
+            Write-Error "❌ No .appinstaller file found!"
+            exit 1
+          }
+          Copy-Item $appinstaller.FullName "release/EliteFinance.appinstaller"
+          Write-Host "✅ Copied AppInstaller: $($appinstaller.FullName)"
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
