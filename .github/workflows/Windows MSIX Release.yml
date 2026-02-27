@@ -82,18 +82,22 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path release | Out-Null
 
-          # Show all build output for debugging
-          Write-Host "🔍 Searching for MSIX files..."
-          Get-ChildItem -Path build -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "Found MSIX: $($_.FullName)"
+          # Search ENTIRE workspace for both files
+          $workspace = $env:GITHUB_WORKSPACE
+          Write-Host "🔍 Searching workspace: $workspace"
+
+          # List ALL generated files for debugging
+          Write-Host "🔍 All .msix files:"
+          Get-ChildItem -Path $workspace -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "  $($_.FullName)"
           }
-          Write-Host "🔍 Searching for AppInstaller files..."
-          Get-ChildItem -Path build -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "Found AppInstaller: $($_.FullName)"
+          Write-Host "🔍 All .appinstaller files:"
+          Get-ChildItem -Path $workspace -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "  $($_.FullName)"
           }
 
           # Copy MSIX
-          $msix = Get-ChildItem -Path build -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $msix = Get-ChildItem -Path $workspace -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($null -eq $msix) {
             Write-Error "❌ No .msix file found!"
             exit 1
@@ -102,7 +106,7 @@ jobs:
           Write-Host "✅ Copied MSIX: $($msix.FullName)"
 
           # Copy AppInstaller
-          $appinstaller = Get-ChildItem -Path build -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $appinstaller = Get-ChildItem -Path $workspace -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($null -eq $appinstaller) {
             Write-Error "❌ No .appinstaller file found!"
             exit 1
