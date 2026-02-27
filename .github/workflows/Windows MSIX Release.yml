@@ -15,9 +15,7 @@ jobs:
       - name: Create .env from secrets
         shell: pwsh
         run: |
-          @"
-          API_BASE_URL=${{ secrets.API_BASE_URL }}
-          "@ | Out-File -FilePath .env -Encoding utf8
+          "API_BASE_URL=${{ secrets.API_BASE_URL }}" | Out-File -FilePath .env -Encoding utf8 -NoNewline
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -30,36 +28,37 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # FIX: decode PFX and import using PowerShell
       - name: Prepare signing cert
         shell: pwsh
         env:
           CERT_PFX_BASE64: ${{ secrets.CERT_PFX_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
-          # Verify password is not empty
           if ([string]::IsNullOrEmpty($env:CERT_PASSWORD)) {
             Write-Error "CERT_PASSWORD secret is empty!"
             exit 1
           }
-          
+
           New-Item -ItemType Directory -Force -Path cert | Out-Null
           $bytes = [Convert]::FromBase64String($env:CERT_PFX_BASE64)
           [IO.File]::WriteAllBytes('cert/financeapp.pfx', $bytes)
-          
-          # Test password by trying to load the certificate
+
+          # ✅ FIX: Replace ${CERT_PASSWORD} placeholder in pubspec.yaml with actual password
+          $pubspec = Get-Content pubspec.yaml -Raw
+          $pubspec = $pubspec -replace '\$\{CERT_PASSWORD\}', $env:CERT_PASSWORD
+          $pubspec | Set-Content pubspec.yaml -Encoding utf8
+
+          Write-Host "✅ pubspec.yaml updated with actual cert password"
+
+          # Verify cert loads correctly
           try {
             $sec = ConvertTo-SecureString $env:CERT_PASSWORD -AsPlainText -Force
             $testCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2('cert/financeapp.pfx', $sec)
-            Write-Host "✅ Certificate loaded successfully. Subject: $($testCert.Subject)"
-            
-            # Import to store
+            Write-Host "✅ Certificate verified. Subject: $($testCert.Subject)"
             Import-PfxCertificate -FilePath cert/financeapp.pfx -CertStoreLocation Cert:\CurrentUser\My -Password $sec | Out-Null
-            
-            # Export password to GitHub env
-            "CERT_PASSWORD=$($env:CERT_PASSWORD)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+            Write-Host "✅ Certificate imported to store"
           } catch {
-            Write-Error "❌ Certificate password is incorrect: $_"
+            Write-Error "❌ Certificate error: $_"
             exit 1
           }
 
@@ -68,12 +67,12 @@ jobs:
           dart pub global activate msix
           dart pub global run msix:create
 
-      - name: Prepare release assets (fixed names)
+      - name: Prepare release assets
         shell: bash
         run: |
           mkdir -p release
-          msix_path=$(ls -1 build/**/*.msix | head -n 1)
-          appinstaller_path=$(ls -1 build/**/*.appinstaller | head -n 1)
+          msix_path=$(find build -name "*.msix" | head -n 1)
+          appinstaller_path=$(find build -name "*.appinstaller" | head -n 1)
           cp "$msix_path" "release/EliteFinance.msix"
           cp "$appinstaller_path" "release/EliteFinance.appinstaller"
 
