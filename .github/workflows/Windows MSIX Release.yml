@@ -37,14 +37,31 @@ jobs:
           CERT_PFX_BASE64: ${{ secrets.CERT_PFX_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
+          # Verify password is not empty
+          if ([string]::IsNullOrEmpty($env:CERT_PASSWORD)) {
+            Write-Error "CERT_PASSWORD secret is empty!"
+            exit 1
+          }
+          
           New-Item -ItemType Directory -Force -Path cert | Out-Null
           $bytes = [Convert]::FromBase64String($env:CERT_PFX_BASE64)
           [IO.File]::WriteAllBytes('cert/financeapp.pfx', $bytes)
-          # make CERT_PASSWORD available for ${CERT_PASSWORD} in pubspec
-          "CERT_PASSWORD=$($env:CERT_PASSWORD)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          # optional: import into CurrentUser store to avoid profile issues
-          $sec = ConvertTo-SecureString $env:CERT_PASSWORD -AsPlainText -Force
-          Import-PfxCertificate -FilePath cert/financeapp.pfx -CertStoreLocation Cert:\CurrentUser\My -Password $sec | Out-Null
+          
+          # Test password by trying to load the certificate
+          try {
+            $sec = ConvertTo-SecureString $env:CERT_PASSWORD -AsPlainText -Force
+            $testCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2('cert/financeapp.pfx', $sec)
+            Write-Host "✅ Certificate loaded successfully. Subject: $($testCert.Subject)"
+            
+            # Import to store
+            Import-PfxCertificate -FilePath cert/financeapp.pfx -CertStoreLocation Cert:\CurrentUser\My -Password $sec | Out-Null
+            
+            # Export password to GitHub env
+            "CERT_PASSWORD=$($env:CERT_PASSWORD)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          } catch {
+            Write-Error "❌ Certificate password is incorrect: $_"
+            exit 1
+          }
 
       - name: Build MSIX + App Installer
         run: |
