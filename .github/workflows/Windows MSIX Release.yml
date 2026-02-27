@@ -81,19 +81,18 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path release | Out-Null
-
-          # Search ENTIRE workspace for both files
           $workspace = $env:GITHUB_WORKSPACE
-          Write-Host "🔍 Searching workspace: $workspace"
 
-          # List ALL generated files for debugging
-          Write-Host "🔍 All .msix files:"
-          Get-ChildItem -Path $workspace -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | ForEach-Object {
+          # Debug: list ALL files in build folder
+          Write-Host "🔍 All files in build/windows:"
+          Get-ChildItem -Path "$workspace\build\windows" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
             Write-Host "  $($_.FullName)"
           }
-          Write-Host "🔍 All .appinstaller files:"
+
+          # Search entire workspace for .appinstaller
+          Write-Host "🔍 Searching entire workspace for .appinstaller..."
           Get-ChildItem -Path $workspace -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "  $($_.FullName)"
+            Write-Host "  Found: $($_.FullName)"
           }
 
           # Copy MSIX
@@ -105,10 +104,18 @@ jobs:
           Copy-Item $msix.FullName "release/EliteFinance.msix"
           Write-Host "✅ Copied MSIX: $($msix.FullName)"
 
-          # Copy AppInstaller
+          # Copy AppInstaller (also check Pub cache and temp folders)
           $appinstaller = Get-ChildItem -Path $workspace -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+          # Fallback: search PUB_CACHE msix temp folder
           if ($null -eq $appinstaller) {
-            Write-Error "❌ No .appinstaller file found!"
+            Write-Host "🔍 Searching PUB_CACHE for .appinstaller..."
+            $pubCache = $env:PUB_CACHE
+            $appinstaller = Get-ChildItem -Path $pubCache -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+
+          if ($null -eq $appinstaller) {
+            Write-Error "❌ No .appinstaller file found anywhere!"
             exit 1
           }
           Copy-Item $appinstaller.FullName "release/EliteFinance.appinstaller"

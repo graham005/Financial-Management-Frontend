@@ -88,8 +88,6 @@ msix_config:
     hours_between_update_checks: 24
     show_prompt: true
     update_blocks_activation: true
-    install_location: build/windows/runner/Release    # ← ADD THIS
-
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
