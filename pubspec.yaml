@@ -79,6 +79,7 @@ msix_config:
   capabilities: internetClient
   certificate_path: cert/financeapp.pfx
   certificate_password: ${CERT_PASSWORD}    # supplied by GitHub secret
+  sign_msix: false
   app_installer:
     enable: true
     uri: https://github.com/graham005/Financial-Management-Frontend/releases/latest/download/EliteFinance.appinstaller
