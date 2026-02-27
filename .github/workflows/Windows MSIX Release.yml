@@ -43,29 +43,40 @@ jobs:
           $bytes = [Convert]::FromBase64String($env:CERT_PFX_BASE64)
           [IO.File]::WriteAllBytes('cert/financeapp.pfx', $bytes)
 
-          # ✅ FIX: Replace ${CERT_PASSWORD} placeholder in pubspec.yaml with actual password
+          # Replace ${CERT_PASSWORD} placeholder in pubspec.yaml with actual password
           $pubspec = Get-Content pubspec.yaml -Raw
           $pubspec = $pubspec -replace '\$\{CERT_PASSWORD\}', $env:CERT_PASSWORD
           $pubspec | Set-Content pubspec.yaml -Encoding utf8
+          Write-Host "✅ pubspec.yaml updated with cert password"
 
-          Write-Host "✅ pubspec.yaml updated with actual cert password"
-
-          # Verify cert loads correctly
-          try {
-            $sec = ConvertTo-SecureString $env:CERT_PASSWORD -AsPlainText -Force
-            $testCert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2('cert/financeapp.pfx', $sec)
-            Write-Host "✅ Certificate verified. Subject: $($testCert.Subject)"
-            Import-PfxCertificate -FilePath cert/financeapp.pfx -CertStoreLocation Cert:\CurrentUser\My -Password $sec | Out-Null
-            Write-Host "✅ Certificate imported to store"
-          } catch {
-            Write-Error "❌ Certificate error: $_"
-            exit 1
-          }
+          # ✅ FIX: Import cert silently into store BEFORE msix runs
+          # This prevents the interactive y/N prompt
+          $sec = ConvertTo-SecureString $env:CERT_PASSWORD -AsPlainText -Force
+          Import-PfxCertificate `
+            -FilePath cert/financeapp.pfx `
+            -CertStoreLocation Cert:\LocalMachine\TrustedPeople `
+            -Password $sec `
+            -Confirm:$false | Out-Null
+          Import-PfxCertificate `
+            -FilePath cert/financeapp.pfx `
+            -CertStoreLocation Cert:\LocalMachine\Root `
+            -Password $sec `
+            -Confirm:$false | Out-Null
+          Import-PfxCertificate `
+            -FilePath cert/financeapp.pfx `
+            -CertStoreLocation Cert:\CurrentUser\My `
+            -Password $sec `
+            -Confirm:$false | Out-Null
+          Write-Host "✅ Certificate imported to all stores silently"
 
       - name: Build MSIX + App Installer
+        shell: pwsh
+        env:
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
           dart pub global activate msix
-          dart pub global run msix:create
+          # ✅ FIX: Pass --no-install-certificate to skip the y/N prompt
+          dart pub global run msix:create --no-install-certificate
 
       - name: Prepare release assets
         shell: bash
@@ -73,8 +84,11 @@ jobs:
           mkdir -p release
           msix_path=$(find build -name "*.msix" | head -n 1)
           appinstaller_path=$(find build -name "*.appinstaller" | head -n 1)
+          if [ -z "$msix_path" ]; then echo "❌ No .msix file found!"; exit 1; fi
+          if [ -z "$appinstaller_path" ]; then echo "❌ No .appinstaller file found!"; exit 1; fi
           cp "$msix_path" "release/EliteFinance.msix"
           cp "$appinstaller_path" "release/EliteFinance.appinstaller"
+          echo "✅ Release assets prepared"
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
