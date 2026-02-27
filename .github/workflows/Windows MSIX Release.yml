@@ -75,8 +75,7 @@ jobs:
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
           dart pub global activate msix
-          # ✅ FIX: Pass --no-install-certificate to skip the y/N prompt
-          dart pub global run msix:create --no-install-certificate
+          dart pub global run msix:create
 
       - name: Prepare release assets
         shell: bash
