@@ -82,12 +82,7 @@ msix_config:
   install_certificate: false
   output_path: build/windows/runner/Release
   output_name: EliteFinance
-  app_installer:
-    enable: true
-    uri: https://github.com/graham005/Financial-Management-Frontend/releases/latest/download/EliteFinance.appinstaller
-    hours_between_update_checks: 24
-    show_prompt: true
-    update_blocks_activation: true
+  
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

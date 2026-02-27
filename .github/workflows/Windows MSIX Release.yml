@@ -69,7 +69,7 @@ jobs:
             -Confirm:$false | Out-Null
           Write-Host "✅ Certificate imported to all stores silently"
 
-      - name: Build MSIX + App Installer
+      - name: Build MSIX
         shell: pwsh
         env:
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
@@ -81,22 +81,9 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path release | Out-Null
-          $workspace = $env:GITHUB_WORKSPACE
-
-          # Debug: list ALL files in build folder
-          Write-Host "🔍 All files in build/windows:"
-          Get-ChildItem -Path "$workspace\build\windows" -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "  $($_.FullName)"
-          }
-
-          # Search entire workspace for .appinstaller
-          Write-Host "🔍 Searching entire workspace for .appinstaller..."
-          Get-ChildItem -Path $workspace -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "  Found: $($_.FullName)"
-          }
 
           # Copy MSIX
-          $msix = Get-ChildItem -Path $workspace -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $msix = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($null -eq $msix) {
             Write-Error "❌ No .msix file found!"
             exit 1
@@ -104,22 +91,30 @@ jobs:
           Copy-Item $msix.FullName "release/EliteFinance.msix"
           Write-Host "✅ Copied MSIX: $($msix.FullName)"
 
-          # Copy AppInstaller (also check Pub cache and temp folders)
-          $appinstaller = Get-ChildItem -Path $workspace -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | Select-Object -First 1
+          # Generate .appinstaller file manually
+          $appInstallerContent = @"
+          <?xml version="1.0" encoding="utf-8"?>
+          <AppInstaller
+            Uri="https://github.com/graham005/Financial-Management-Frontend/releases/latest/download/EliteFinance.appinstaller"
+            Version="1.0.0.0"
+            xmlns="http://schemas.microsoft.com/appx/appinstaller/2018">
+            <MainPackage
+              Name="com.elitedestiny.finance"
+              Publisher="CN=Elite Destiny Academy"
+              Version="1.0.0.0"
+              Uri="https://github.com/graham005/Financial-Management-Frontend/releases/latest/download/EliteFinance.msix"
+              ProcessorArchitecture="x64" />
+            <UpdateSettings>
+              <OnLaunch
+                HoursBetweenUpdateChecks="24"
+                ShowPrompt="true"
+                UpdateBlocksActivation="true" />
+            </UpdateSettings>
+          </AppInstaller>
+          "@
 
-          # Fallback: search PUB_CACHE msix temp folder
-          if ($null -eq $appinstaller) {
-            Write-Host "🔍 Searching PUB_CACHE for .appinstaller..."
-            $pubCache = $env:PUB_CACHE
-            $appinstaller = Get-ChildItem -Path $pubCache -Recurse -Filter "*.appinstaller" -ErrorAction SilentlyContinue | Select-Object -First 1
-          }
-
-          if ($null -eq $appinstaller) {
-            Write-Error "❌ No .appinstaller file found anywhere!"
-            exit 1
-          }
-          Copy-Item $appinstaller.FullName "release/EliteFinance.appinstaller"
-          Write-Host "✅ Copied AppInstaller: $($appinstaller.FullName)"
+          $appInstallerContent | Out-File -FilePath "release/EliteFinance.appinstaller" -Encoding utf8
+          Write-Host "✅ Generated EliteFinance.appinstaller"
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
